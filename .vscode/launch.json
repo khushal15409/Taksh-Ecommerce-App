@@ -1,0 +1,39 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Dev",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_dev.dart",
+      "args": []
+    },
+    {
+      "name": "Staging",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_staging.dart",
+      "args": []
+    },
+    {
+      "name": "Production",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": []
+    },
+    {
+      "name": "Mock",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_mock.dart",
+      "args": []
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All Configurations",
+      "configurations": ["Dev", "Staging", "Production", "Mock"]
+    }
+  ]
+}

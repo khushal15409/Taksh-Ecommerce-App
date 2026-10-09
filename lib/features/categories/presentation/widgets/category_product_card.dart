@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taksh_e_commerce/core/routing/app_routes.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/cart/presentation/widgets/product_add_to_cart_button.dart';
 import 'package:taksh_e_commerce/features/home/domain/entities/product_variant_info.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/product.dart';
@@ -56,13 +57,8 @@ class CategoryProductCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(22),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              ),
-            ],
+            border: Border.all(color: AppColors.grey200),
+            boxShadow: takshSoftShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,6 +73,7 @@ class CategoryProductCard extends StatelessWidget {
                 const SizedBox(height: 6),
               ],
               _buildName(context),
+              _buildRating(),
               const SizedBox(height: 8),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -261,35 +258,9 @@ class CategoryProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureBadge({
-    required String label,
-    required List<Color> colors,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: colors),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.2,
-          height: 1,
-        ),
-      ),
-    );
-  }
-
   Widget? _buildVisualBadge(int? discount) {
     if (discount != null) {
-      return _buildFeatureBadge(
-        label: '$discount% OFF',
-        colors: const [Color(0xFFFF6B57), Color(0xFFFF8A52)],
-      );
+      return TakshDiscountBadge(percent: discount);
     }
 
     return null;
@@ -318,6 +289,35 @@ class CategoryProductCard extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w700,
               height: 1.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Shows the rating only when the backend provided one.
+  Widget _buildRating() {
+    final summary = product.ratingSummary;
+    if (summary == null || summary.averageRating <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.star_rounded, size: 14, color: AppColors.rating),
+          const SizedBox(width: 2),
+          Text(
+            summary.totalReviews > 0
+                ? '${summary.averageRating.toStringAsFixed(1)} (${summary.totalReviews})'
+                : summary.averageRating.toStringAsFixed(1),
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.grey600,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

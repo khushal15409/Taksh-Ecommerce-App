@@ -119,7 +119,7 @@ class _ServiceStyle {
   });
 }
 
-class _ServicesView extends StatelessWidget {
+class _ServicesView extends StatefulWidget {
   final List<HomeService> services;
   final _ServiceStyle Function(String slug) styleForSlug;
   final void Function(HomeService service) onServiceTap;
@@ -131,8 +131,25 @@ class _ServicesView extends StatelessWidget {
   });
 
   @override
+  State<_ServicesView> createState() => _ServicesViewState();
+}
+
+class _ServicesViewState extends State<_ServicesView> {
+  String _query = '';
+
+  List<HomeService> get _filtered {
+    final query = _query.trim().toLowerCase();
+    if (query.isEmpty) return widget.services;
+    return widget.services.where((service) {
+      return service.name.toLowerCase().contains(query) ||
+          service.displayDescription.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final services = _filtered;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -157,7 +174,7 @@ class _ServicesView extends StatelessWidget {
               Text(
                 l10n.homeServices,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.black,
                 ),
               ),
@@ -169,9 +186,18 @@ class _ServicesView extends StatelessWidget {
                   height: 1.4,
                 ),
               ),
+              if (widget.services.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.md),
+                _buildSearchField(),
+              ],
               const SizedBox(height: AppSpacing.md),
-              if (services.isEmpty)
+              if (widget.services.isEmpty)
                 _EmptyView(subtitle: l10n.homeServicesSubtitle)
+              else if (services.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                  child: Center(child: Text('No services found')),
+                )
               else
                 GridView.builder(
                   shrinkWrap: true,
@@ -187,15 +213,124 @@ class _ServicesView extends StatelessWidget {
                     final service = services[index];
                     return _ServiceCard(
                       service: service,
-                      style: styleForSlug(service.slug),
-                      onTap: () => onServiceTap(service),
+                      style: widget.styleForSlug(service.slug),
+                      onTap: () => widget.onServiceTap(service),
                     );
                   },
                 ),
+              if (widget.services.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.lg),
+                const _WhyChooseSection(),
+              ],
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: takshSoftShadow,
+      ),
+      child: TextField(
+        onChanged: (value) => setState(() => _query = value),
+        textInputAction: TextInputAction.search,
+        decoration: const InputDecoration(
+          hintText: 'Search for services...',
+          hintStyle: TextStyle(color: AppColors.grey500, fontSize: 14),
+          prefixIcon: Icon(Icons.search_rounded, color: AppColors.grey700),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    );
+  }
+}
+
+class _WhyChooseSection extends StatelessWidget {
+  const _WhyChooseSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text(
+          'Why Choose Taksh Services?',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            color: AppColors.black,
+          ),
+        ),
+        SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            _TrustItem(
+              icon: Icons.verified_rounded,
+              color: AppColors.secondaryGreen,
+              label: 'Verified\nProfessionals',
+            ),
+            _TrustItem(
+              icon: Icons.schedule_rounded,
+              color: AppColors.primaryOrange,
+              label: 'On-Time\nService',
+            ),
+            _TrustItem(
+              icon: Icons.shield_rounded,
+              color: Color(0xFF1976D2),
+              label: 'Safe & Secure\nPayments',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TrustItem extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String label;
+
+  const _TrustItem({
+    required this.icon,
+    required this.color,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                height: 1.2,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

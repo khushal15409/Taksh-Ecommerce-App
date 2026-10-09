@@ -9,6 +9,7 @@ import 'package:taksh_e_commerce/features/auth/presentation/bloc/auth_bloc.dart'
 import 'package:taksh_e_commerce/features/auth/presentation/bloc/auth_state.dart';
 import 'package:taksh_e_commerce/features/address/domain/entities/address.dart';
 import 'package:taksh_e_commerce/features/address/presentation/widgets/address_selection_bottom_sheet.dart';
+import 'package:taksh_e_commerce/features/categories/presentation/widgets/category_chip_strip.dart';
 import 'package:taksh_e_commerce/features/categories/presentation/widgets/widgets.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/delivery_type_selector.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/category.dart';
@@ -222,10 +223,103 @@ class _CategoriesPageState extends State<CategoriesPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        toolbarHeight: 72,
+        toolbarHeight: 64,
         titleSpacing: 16,
         automaticallyImplyLeading: false,
-        title: Container(
+        title: _buildHeading(),
+        actions: [
+          IconButton(
+            tooltip: AppLocalizations.of(context)!.searchForProducts,
+            onPressed: () => context.push(AppRoutes.search),
+            icon: const Icon(Icons.search_rounded),
+          ),
+          const SizedBox(width: 4),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: _buildModeSelector(),
+          ),
+        ),
+        centerTitle: false,
+        elevation: 0,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
+      ),
+      body: BlocConsumer<ProductCubit, ProductState>(
+        listener: _handleStateChange,
+        builder: (context, state) {
+          if (state is CategoryLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is ProductError && _categories.isEmpty) {
+            return ErrorView(
+              message: state.message,
+              onRetry: _retryFetchCategories,
+            );
+          }
+
+          if (_categories.isEmpty) {
+            return Center(
+              child: Text(AppLocalizations.of(context)!.noCategoriesAvailable),
+            );
+          }
+
+          return Column(
+            children: [
+              CategoryChipStrip(
+                categories: _categories,
+                selectedIndex: _selectedIndex,
+                onCategorySelected: _selectCategory,
+              ),
+              Expanded(child: _buildProductsPanel(state)),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildHeading() {
+    return BlocBuilder<ProductCubit, ProductState>(
+      builder: (context, state) {
+        final name = _categories.isEmpty
+            ? AppLocalizations.of(context)!.categoriesTab
+            : _categories[_selectedIndex].name;
+        final total = state is ProductListLoaded
+            ? state.paginatedProducts.total
+            : null;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            ),
+            if (total != null)
+              Text(
+                '$total products',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildModeSelector() {
+    return Container(
           width: double.infinity,
           height: 52,
           padding: const EdgeInsets.all(2),
@@ -284,53 +378,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
               side: const WidgetStatePropertyAll(BorderSide.none),
             ),
           ),
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: _buildSearchBar(),
-          ),
-        ),
-        centerTitle: false,
-        elevation: 0,
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        surfaceTintColor: Colors.transparent,
-        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
-      ),
-      body: BlocConsumer<ProductCubit, ProductState>(
-        listener: _handleStateChange,
-        builder: (context, state) {
-          if (state is CategoryLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is ProductError && _categories.isEmpty) {
-            return ErrorView(
-              message: state.message,
-              onRetry: _retryFetchCategories,
-            );
-          }
-
-          if (_categories.isEmpty) {
-            return Center(
-              child: Text(AppLocalizations.of(context)!.noCategoriesAvailable),
-            );
-          }
-
-          return Row(
-            children: [
-              CategoriesSidebar(
-                categories: _categories,
-                selectedIndex: _selectedIndex,
-                onCategorySelected: _selectCategory,
-              ),
-              Expanded(child: _buildProductsPanel(state)),
-            ],
-          );
-        },
-      ),
-    );
+        );
   }
 
   void _handleStateChange(BuildContext context, ProductState state) {
@@ -392,67 +440,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
     }
 
     return null;
-  }
-
-  Widget _buildSearchBar() {
-    return Container(
-      height: 44,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            context.push(AppRoutes.search);
-          },
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.search_rounded,
-                  color: AppColors.primaryOrange,
-                  size: 22,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    AppLocalizations.of(context)!.searchForProducts,
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryOrange.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.mic_none_rounded,
-                    color: AppColors.primaryOrange,
-                    size: 18,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildProductsPanel(ProductState state) {

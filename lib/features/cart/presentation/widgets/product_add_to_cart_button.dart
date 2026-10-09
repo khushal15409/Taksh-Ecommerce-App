@@ -595,7 +595,7 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
             color: AppColors.white.withValues(alpha: 0.96),
             borderRadius: BorderRadius.circular(isOutlinedGreen ? 17 : 12),
             border: isOutlinedGreen
-                ? Border.all(color: AppColors.secondaryGreen, width: 2)
+                ? Border.all(color: AppColors.primaryOrange, width: 2)
                 : null,
             boxShadow: [
               BoxShadow(
@@ -612,7 +612,7 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: isOutlinedGreen
-                    ? AppColors.secondaryGreen
+                    ? AppColors.primaryOrange
                     : AppColors.primaryOrange,
                 fontWeight: FontWeight.w800,
                 fontSize: isOutlinedGreen ? 13 : 12,
@@ -662,7 +662,7 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
             color: AppColors.white.withValues(alpha: 0.96),
             borderRadius: BorderRadius.circular(isOutlinedGreen ? 17 : 12),
             border: isOutlinedGreen
-                ? Border.all(color: AppColors.secondaryGreen, width: 2)
+                ? Border.all(color: AppColors.primaryOrange, width: 2)
                 : null,
             boxShadow: [
               BoxShadow(
@@ -680,7 +680,7 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
                       isOutlinedGreen
-                          ? AppColors.secondaryGreen
+                          ? AppColors.primaryOrange
                           : AppColors.primaryOrange,
                     ),
                   ),
@@ -696,7 +696,7 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: isOutlinedGreen
-                              ? AppColors.secondaryGreen
+                              ? AppColors.primaryOrange
                               : AppColors.primaryOrange,
                           fontWeight: FontWeight.w800,
                           fontSize: isOutlinedGreen ? 13 : 12,
@@ -711,7 +711,7 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: isOutlinedGreen
-                                ? AppColors.secondaryGreen
+                                ? AppColors.primaryOrange
                                 : AppColors.primaryOrange,
                             fontWeight: FontWeight.w600,
                             fontSize: 9,

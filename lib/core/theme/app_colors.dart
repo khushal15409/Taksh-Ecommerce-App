@@ -7,9 +7,9 @@ class AppColors {
   AppColors._(); // Private constructor to prevent instantiation
 
   // ============ Primary Colors (Saffron/Orange - Top of Indian Flag) ============
-  static const Color primaryOrange = Color(0xFFFFA340);
-  static const Color primaryOrangeDark = Color(0xFFE38A2E);
-  static const Color primaryOrangeLight = Color(0xFFFFC07A);
+  static const Color primaryOrange = Color(0xFFFF7A1A);
+  static const Color primaryOrangeDark = Color(0xFFE8650A);
+  static const Color primaryOrangeLight = Color(0xFFFFA45C);
   static const Color saffron = Color(0xFFFF9933); // Traditional saffron
   static const Color saffronLight = Color(0xFFFFB366);
   static const Color saffronDark = Color(0xFFE68A00);

@@ -14,6 +14,9 @@ import 'package:taksh_e_commerce/features/product/domain/entities/category.dart'
 /// Express dashboard content widget for quick delivery section
 class ExpressDashboardContent extends StatelessWidget {
   final ExpressDashboardEntity dashboard;
+
+  /// Optional widget (category shortcuts) shown right below the banners.
+  final Widget? categoryStrip;
   final void Function(ProductModel product)? onProductTap;
   final double latitude;
   final double longitude;
@@ -21,6 +24,7 @@ class ExpressDashboardContent extends StatelessWidget {
   const ExpressDashboardContent({
     super.key,
     required this.dashboard,
+    this.categoryStrip,
     this.onProductTap,
     this.latitude = 23.0225,
     this.longitude = 72.5714,
@@ -103,6 +107,11 @@ class ExpressDashboardContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ...bannerWidgets,
+        if (categoryStrip != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: categoryStrip,
+          ),
         ...productWidgets,
         Padding(
           padding: const EdgeInsets.only(bottom: 8),

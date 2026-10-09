@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/features/address/domain/entities/address.dart';
 
 /// Widget to display selected address in the home header
@@ -16,80 +17,65 @@ class AddressHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.25),
-            width: 1,
-          ),
-        ),
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.location_on_rounded,
-              color: Colors.black,
-              size: 16,
+            Container(
+              width: 34,
+              height: 34,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.location_on_rounded,
+                color: AppColors.primaryOrange,
+                size: 18,
+              ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Text(
+                    selectedAddress != null ? 'Deliver to' : 'Select Address',
+                    style: TextStyle(
+                      color: Colors.black.withOpacity(0.6),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Flexible(
                         child: Text(
                           selectedAddress != null
-                              ? 'Deliver to'
-                              : 'Select Address',
-                          style: TextStyle(
-                            color: Colors.black.withOpacity(0.7),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
+                              ? _getAddressText(selectedAddress!)
+                              : 'Tap to choose',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
                           ),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 2),
-                      Icon(
+                      const Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: Colors.black.withOpacity(0.7),
-                        size: 14,
+                        color: Colors.black,
+                        size: 18,
                       ),
                     ],
                   ),
-                  if (selectedAddress != null) ...[
-                    const SizedBox(height: 1),
-                    Text(
-                      _getAddressText(selectedAddress!),
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ] else ...[
-                    const SizedBox(height: 1),
-                    const Text(
-                      'Tap to choose',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
                 ],
               ),
             ),

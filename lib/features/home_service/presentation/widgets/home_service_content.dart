@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:taksh_e_commerce/core/di/injector.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/core/theme/app_spacing.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/home_service/domain/entities/home_service.dart';
 import 'package:taksh_e_commerce/features/home_service/presentation/cubit/home_service_cubit.dart';
 import 'package:taksh_e_commerce/features/home_service/presentation/cubit/home_service_state.dart';
@@ -225,13 +226,7 @@ class _ServiceCard extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: style.borderColor),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 14,
-                offset: const Offset(0, 8),
-              ),
-            ],
+            boxShadow: takshSoftShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -241,10 +236,18 @@ class _ServiceCard extends StatelessWidget {
                 children: [
                   _ServiceVisual(service: service, style: style),
                   const Spacer(),
-                  Icon(
-                    Icons.arrow_outward_rounded,
-                    size: 20,
-                    color: style.gradient.first,
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: style.gradient.first.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16,
+                      color: style.gradient.first,
+                    ),
                   ),
                 ],
               ),
@@ -298,14 +301,14 @@ class _ServiceVisual extends StatelessWidget {
     final imageUrl = service.primaryImageUrl;
 
     return Container(
-      width: 64,
-      height: 64,
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
         color: style.surfaceColor,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         child: imageUrl != null
             ? CachedNetworkImage(
                 imageUrl: imageUrl,
@@ -330,9 +333,9 @@ class _ServiceIcon extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(colors: style.gradient),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(style.icon, color: Colors.white, size: 30),
+      child: Icon(style.icon, color: Colors.white, size: 28),
     );
   }
 }

@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/core/theme/app_spacing.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/home/data/models/dashboard_section_model.dart';
 import 'package:taksh_e_commerce/features/home/data/models/product_model.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/product_card.dart';
 
-/// Section widget for displaying products in a responsive grid
-/// Modern design with attractive section headers and smooth layouts
+/// Section widget showing a titled, horizontally scrolling row of product
+/// cards. Sections without data render nothing.
 class ProductSection extends StatelessWidget {
   final DashboardSectionModel section;
   final Function(ProductModel)? onProductTap;
   final VoidCallback? onViewAllTap;
+
+  /// Approximate number of cards visible at once (the next card peeks in).
+  /// Values of 4 or more switch to the compact card variant.
   final int gridColumns;
   final bool showDeliveryTime;
 
@@ -23,6 +26,9 @@ class ProductSection extends StatelessWidget {
     this.showDeliveryTime = false,
   });
 
+  /// Height of the card's text area below the (square) image.
+  static const double _infoHeight = 112;
+
   @override
   Widget build(BuildContext context) {
     // Don't show empty sections
@@ -31,168 +37,54 @@ class ProductSection extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: 0,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Modern section header
-          _buildSectionHeader(context),
-          const SizedBox(height: 8),
-          // Product grid with improved spacing
-          _buildProductGrid(context),
+          TakshSectionHeader(title: section.key, onViewAll: onViewAllTap),
+          const SizedBox(height: 10),
+          _buildProductRow(context),
         ],
       ),
     );
   }
 
-  /// Builds the modern section header with title and view all button
-  Widget _buildSectionHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Section title with decorative accent
-        Expanded(
-          child: Row(
-            children: [
-              // Decorative accent bar
-              Container(
-                width: 3,
-                height: 18,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.primaryOrange,
-                      AppColors.secondaryGreen,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              // Section title
-              Expanded(
-                child: Text(
-                  section.key,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.black,
-                    letterSpacing: -0.3,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // View All button with modern styling
-        if (onViewAllTap != null) _buildViewAllButton(context),
-      ],
-    );
-  }
-
-  /// Builds the modern View All button
-  Widget _buildViewAllButton(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onViewAllTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xxs + 2,
-          ),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.primaryOrange.withOpacity(0.1),
-                AppColors.primaryOrangeLight.withOpacity(0.08),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.primaryOrange.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'View All',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.black,
-                  letterSpacing: 0.2,
-                ),
-              ),
-              SizedBox(width: 2),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 10,
-                color: AppColors.black,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Builds the product grid with responsive columns
-  Widget _buildProductGrid(BuildContext context) {
-    // Determine variant based on grid columns
+  Widget _buildProductRow(BuildContext context) {
     final isCompactGrid = gridColumns >= 4;
     final cardVariant = isCompactGrid
         ? ProductCardVariant.compact
         : ProductCardVariant.standard;
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0).clamp(1.0, 1.4);
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-        // Tighter spacing for compact grids
-        final spacing = isCompactGrid ? 8.0 : 10.0;
-        final visibleColumns = gridColumns.clamp(2, 6);
-
-        // Peek next column to hint horizontal scroll
-        const peekFraction = 0.3;
-        final itemWidth = (screenWidth - (spacing * (visibleColumns - 1))) /
+        const spacing = 12.0;
+        final visibleColumns = isCompactGrid ? 3 : 2;
+        const peekFraction = 0.35;
+        final itemWidth =
+            (constraints.maxWidth - (spacing * (visibleColumns - 1))) /
             (visibleColumns + peekFraction);
-
-        // Different base heights for redesigned cards
-        final itemHeight = isCompactGrid ? 232.0 : 252.0;
-        final aspectRatio = itemHeight / itemWidth;
-        final gridHeight = (itemHeight * 2) + spacing;
+        final rowHeight = itemWidth + (_infoHeight * textScale);
 
         return SizedBox(
-          height: gridHeight,
-          child: GridView.builder(
+          height: rowHeight + 6,
+          child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.zero,
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.only(bottom: 6),
             physics: const BouncingScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
-              childAspectRatio: aspectRatio,
-              mainAxisExtent: itemWidth,
-            ),
             itemCount: section.products.length,
+            separatorBuilder: (context, index) => const SizedBox(width: spacing),
             itemBuilder: (context, index) {
               final product = section.products[index];
-              return ProductCard(
-                product: product,
-                variant: cardVariant,
-                showDeliveryTime: showDeliveryTime,
-                onTap: () => onProductTap?.call(product),
+              return SizedBox(
+                width: itemWidth,
+                child: ProductCard(
+                  product: product,
+                  variant: cardVariant,
+                  showDeliveryTime: showDeliveryTime,
+                  onTap: () => onProductTap?.call(product),
+                ),
               );
             },
           ),

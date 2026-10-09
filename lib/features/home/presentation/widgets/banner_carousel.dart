@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:taksh_e_commerce/features/home/data/models/banner_model.dart';
 
@@ -36,7 +38,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
     return Column(
       children: [
         SizedBox(
-          height: 180,
+          height: (MediaQuery.of(context).size.width * 0.46).clamp(150.0, 230.0),
           child: PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -55,7 +57,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
           ),
         ),
         if (widget.banners.length > 1) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           _PageIndicator(
             itemCount: widget.banners.length,
             currentIndex: _currentPage,
@@ -84,17 +86,11 @@ class _BannerItem extends StatelessWidget {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: takshSoftShadow,
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(20),
             child: CachedNetworkImage(
               imageUrl: banner.imageUrl,
               fit: BoxFit.cover,
@@ -133,15 +129,16 @@ class _PageIndicator extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         itemCount,
-        (index) => Container(
-          width: 8,
-          height: 8,
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+        (index) => AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: index == currentIndex ? 18 : 6,
+          height: 6,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            borderRadius: BorderRadius.circular(3),
             color: index == currentIndex
-                ? Theme.of(context).primaryColor
-                : Colors.grey[300],
+                ? AppColors.primaryOrange
+                : AppColors.grey300,
           ),
         ),
       ),

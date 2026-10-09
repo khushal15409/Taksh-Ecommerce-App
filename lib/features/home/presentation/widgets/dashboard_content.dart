@@ -17,9 +17,13 @@ import 'package:taksh_e_commerce/features/product/domain/entities/category.dart'
 class DashboardContent extends StatefulWidget {
   final dynamic dashboard;
 
+  /// Optional widget (category shortcuts) shown right below the banners.
+  final Widget? categoryStrip;
+
   const DashboardContent({
     super.key,
     required this.dashboard,
+    this.categoryStrip,
   });
 
   @override
@@ -118,6 +122,11 @@ class _DashboardContentState extends State<DashboardContent> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ...bannerWidgets,
+        if (widget.categoryStrip != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: widget.categoryStrip,
+          ),
         // Recent Views Section (moved near top, below banners)
         BlocBuilder<RecentViewsCubit, RecentViewsState>(
           builder: (context, state) {

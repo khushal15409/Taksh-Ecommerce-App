@@ -1,0 +1,119 @@
+name: Build Android APK
+
+# Builds a test APK and uploads it as a workflow artifact.
+# NOTE: APKs are signed with the debug key (see android/app/build.gradle.kts).
+# They are for testing only and are NOT suitable for a Play Store release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      entry:
+        description: "App entry point (mock = no backend, OTP 123456)"
+        type: choice
+        default: mock
+        options:
+          - mock
+          - dev
+          - prod
+      mode:
+        description: "Build mode"
+        type: choice
+        default: debug
+        options:
+          - debug
+          - release
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-android-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # Push builds (no inputs) default to a mock debug APK.
+      ENTRY: ${{ inputs.entry || 'mock' }}
+      MODE: ${{ inputs.mode || 'debug' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve entry point
+        id: cfg
+        run: |
+          case "$ENTRY" in
+            mock) TARGET=lib/main_mock.dart ;;
+            dev)  TARGET=lib/main_dev.dart ;;
+            prod) TARGET=lib/main.dart ;;
+            *) echo "Unknown entry: $ENTRY"; exit 1 ;;
+          esac
+          case "$MODE" in
+            debug|release) ;;
+            *) echo "Unknown mode: $MODE"; exit 1 ;;
+          esac
+          test -f "$TARGET" || { echo "Missing $TARGET"; exit 1; }
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "apk=build/app/outputs/flutter-apk/app-$MODE.apk" >> "$GITHUB_OUTPUT"
+          echo "name=taksh-$ENTRY-$MODE-apk-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: "3.38.5"
+          cache: true
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties', 'pubspec.lock') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Flutter doctor
+        run: |
+          flutter --version
+          dart --version
+          java -version
+          flutter doctor -v
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code (build_runner)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build APK
+        run: |
+          echo "Entry: ${{ steps.cfg.outputs.target }} | Mode: $MODE"
+          flutter build apk --$MODE -t "${{ steps.cfg.outputs.target }}"
+
+      - name: Verify APK
+        run: |
+          APK="${{ steps.cfg.outputs.apk }}"
+          test -s "$APK" || { echo "APK missing or empty: $APK"; exit 1; }
+          ls -l "$APK"
+          sha256sum "$APK"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.cfg.outputs.name }}
+          path: ${{ steps.cfg.outputs.apk }}
+          if-no-files-found: error
+          retention-days: 7

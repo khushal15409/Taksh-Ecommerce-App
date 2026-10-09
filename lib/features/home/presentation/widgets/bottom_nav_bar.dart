@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/core/theme/app_spacing.dart';
 import 'package:taksh_e_commerce/l10n/app_localizations.dart';
 
@@ -25,11 +26,12 @@ class CustomBottomNavBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
           ),
         ],
       ),
@@ -111,7 +113,7 @@ class _NavBarItem extends StatelessWidget {
     
     final color = isSelected 
         ? colorScheme.primary 
-        : (isDark ? Colors.grey[400] : Colors.black);
+        : (isDark ? Colors.grey[400] : AppColors.grey600);
 
     return InkWell(
       onTap: onTap,
@@ -134,7 +136,7 @@ class _NavBarItem extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              backgroundColor: colorScheme.error,
+              backgroundColor: AppColors.primaryOrange,
               child: Icon(
                 icon,
                 color: color,
@@ -146,7 +148,7 @@ class _NavBarItem extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: color,
               ),
             ),

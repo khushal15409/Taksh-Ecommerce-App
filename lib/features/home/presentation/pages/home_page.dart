@@ -5,6 +5,7 @@ import 'package:taksh_e_commerce/core/di/injector.dart';
 import 'package:taksh_e_commerce/core/routing/app_routes.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/core/utils/logger/logger.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:taksh_e_commerce/features/auth/presentation/bloc/auth_state.dart';
 import 'package:taksh_e_commerce/features/address/domain/entities/address.dart';
@@ -22,6 +23,7 @@ import 'package:taksh_e_commerce/features/home/presentation/bloc/recent_views_cu
 import 'package:taksh_e_commerce/features/home/presentation/widgets/dashboard_content.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/dashboard_shimmer.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/express_dashboard_content.dart';
+import 'package:taksh_e_commerce/features/home/presentation/widgets/home_category_strip.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/home_header.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/delivery_type_selector.dart';
 import 'package:taksh_e_commerce/features/home_service/presentation/widgets/home_service_content.dart';
@@ -53,12 +55,6 @@ class _HomePageContent extends StatefulWidget {
 
 class _HomePageState extends State<_HomePageContent> {
   final _log = loggerWithContext({'feature': 'home', 'page': 'HomePage'});
-  static const double _scrollShadeHeightFactor = 0.62;
-  static const double _scrollShadeBottomCurve = 44;
-  // Extra upward shift applied to the gradient on top of normal scroll speed.
-  // Total gradient speed = 1x (scroll) + 0.6x (extra) = 1.6x — feels like
-  // the green is rushing up faster than the content sitting on top of it.
-  static const double _scrollShadeParallaxFactor = 0.6;
   static const double _defaultLatitude = 23.0695;
   static const double _defaultLongitude = 72.6738;
   static const String _defaultPincode = '382330';
@@ -274,7 +270,7 @@ class _HomePageState extends State<_HomePageContent> {
             backgroundColor: Colors.white,
             body: RefreshIndicator(
               onRefresh: _handleRefresh,
-              edgeOffset: 120, // Push refresh indicator below header slightly
+              edgeOffset: 80,
               child: CustomScrollView(
                 controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
@@ -298,66 +294,12 @@ class _HomePageState extends State<_HomePageContent> {
   }
 
   Widget _buildScrollableBody() {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final shadeHeight = screenHeight * _scrollShadeHeightFactor;
-    final minBodyHeight = screenHeight * 0.7;
+    final minBodyHeight = MediaQuery.of(context).size.height * 0.7;
 
-    return Stack(
-      children: [
-        // ── Gradient background (parallax layer) ──────────────────────────
-        // Moves upward faster than normal scroll speed.
-        // Since this widget is already inside the CustomScrollView it moves
-        // at 1x by default. AnimatedBuilder adds an EXTRA upward offset
-        // (_scrollShadeParallaxFactor × scrollOffset) so the total speed is
-        // (1 + _scrollShadeParallaxFactor)x — the green rushes up faster.
-        AnimatedBuilder(
-          animation: _scrollController,
-          builder: (context, child) {
-            // Guard: .offset asserts exactly 1 attached position – during
-            // BlocBuilder/tab rebuilds there can briefly be 2 or 0.
-            final scrollOffset =
-                _scrollController.hasClients &&
-                    _scrollController.positions.length == 1
-                ? _scrollController.positions.first.pixels
-                : 0.0;
-            final extraShift = (scrollOffset * _scrollShadeParallaxFactor)
-                .clamp(0.0, shadeHeight);
-            return Transform.translate(
-              offset: Offset(0, -extraShift),
-              child: child,
-            );
-          },
-          child: Column(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(_scrollShadeBottomCurve),
-                  bottomRight: Radius.circular(_scrollShadeBottomCurve),
-                ),
-                child: _buildWhiteGreenBodyGradient(shadeHeight),
-              ),
-              Container(
-                constraints: BoxConstraints(minHeight: minBodyHeight),
-                color: Colors.white,
-              ),
-            ],
-          ),
-        ),
-
-        // ── Content (normal scroll speed) ─────────────────────────────────
-        _buildContent(),
-      ],
-    );
-  }
-
-  Widget _buildWhiteGreenBodyGradient(double height) {
-    return SizedBox(
-      height: height,
-      width: double.infinity,
-      child: Image.asset(
-        'assets/images/green.jpeg',
-        fit: BoxFit.cover,
-        alignment: Alignment.topCenter,
+    return TakshSoftBackground(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: minBodyHeight),
+        child: _buildContent(),
       ),
     );
   }
@@ -367,51 +309,6 @@ class _HomePageState extends State<_HomePageContent> {
       case DeliveryType.standard:
         return Column(
           children: [
-            // Standard delivery badge with green gradient
-            Container(
-              margin: const EdgeInsets.fromLTRB(16, 4, 16, 2),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: IndiaGradients.greenGradient,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.secondaryGreen.withOpacity(0.42),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.local_shipping,
-                      color: AppColors.secondaryGreen,
-                      size: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Flexible(
-                    child: Text(
-                      'Standard Delivery - Shop Your Favorites!',
-                      style: TextStyle(
-                        color: AppColors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             BlocBuilder<DashboardBloc, DashboardState>(
               builder: (context, state) {
                 if (state is DashboardLoading) {
@@ -427,7 +324,12 @@ class _HomePageState extends State<_HomePageContent> {
                       ? state.dashboard
                       : (state as DashboardRefreshing).dashboard;
 
-                  return DashboardContent(dashboard: dashboard);
+                  return DashboardContent(
+                    dashboard: dashboard,
+                    categoryStrip: const HomeCategoryStrip(
+                      deliveryType: DeliveryType.standard,
+                    ),
+                  );
                 }
 
                 return const DashboardShimmer();
@@ -438,51 +340,6 @@ class _HomePageState extends State<_HomePageContent> {
       case DeliveryType.quick:
         return Column(
           children: [
-            // Quick delivery badge with orange gradient
-            Container(
-              margin: const EdgeInsets.fromLTRB(16, 4, 16, 2),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: IndiaGradients.saffronGradient,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryOrange.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.bolt,
-                      color: AppColors.primaryOrange,
-                      size: 12,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Flexible(
-                    child: Text(
-                      'Quick Delivery - Express 30',
-                      style: TextStyle(
-                        color: AppColors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             BlocBuilder<ExpressDashboardBloc, ExpressDashboardState>(
               builder: (context, state) {
                 if (state is ExpressDashboardLoading) {
@@ -501,6 +358,9 @@ class _HomePageState extends State<_HomePageContent> {
 
                   return ExpressDashboardContent(
                     dashboard: dashboard,
+                    categoryStrip: const HomeCategoryStrip(
+                      deliveryType: DeliveryType.quick,
+                    ),
                     latitude: _defaultLatitude,
                     longitude: _defaultLongitude,
                     onProductTap: (product) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/core/utils/logger/logger.dart';
 import 'package:taksh_e_commerce/l10n/app_localizations.dart';
 
@@ -10,7 +11,7 @@ enum DeliveryType {
 }
 
 /// Delivery type selector with tabs for quick, standard, and services
-/// Uses Indian flag tricolor theme
+/// Rendered as three tiles; the selected tile is filled with the brand orange
 class DeliveryTypeSelector extends StatelessWidget {
   final DeliveryType selectedDeliveryType;
   final ValueChanged<DeliveryType> onDeliveryTypeChanged;
@@ -26,78 +27,83 @@ class DeliveryTypeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.25),
-          width: 1,
+    final l10n = AppLocalizations.of(context)!;
+    return Row(
+      children: [
+        _buildTile(
+          DeliveryType.standard,
+          l10n.standardDelivery,
+          Icons.shopping_cart_outlined,
         ),
-      ),
-      child: Row(
-        children: [
-          _buildDeliveryTab(
-            DeliveryType.standard,
-            AppLocalizations.of(context)!.standardDelivery.replaceAll(' ', '\n'),
-            AppColors.secondaryGreen,
-          ),
-          const SizedBox(width: 3),
-          _buildDeliveryTab(
-            DeliveryType.quick,
-            AppLocalizations.of(context)!.quickDelivery.replaceAll(' ', '\n'),
-            AppColors.primaryOrange,
-          ),
-          const SizedBox(width: 3),
-          _buildDeliveryTab(
-            DeliveryType.services,
-            AppLocalizations.of(context)!.homeService.replaceAll(' ', '\n'),
-            AppColors.primaryOrange,
-          ),
-        ],
-      ),
+        const SizedBox(width: 10),
+        _buildTile(
+          DeliveryType.quick,
+          l10n.quickDelivery,
+          Icons.bolt_outlined,
+        ),
+        const SizedBox(width: 10),
+        _buildTile(
+          DeliveryType.services,
+          l10n.homeService,
+          Icons.home_outlined,
+        ),
+      ],
     );
   }
 
-  Widget _buildDeliveryTab(DeliveryType type, String label, Color accentColor) {
+  Widget _buildTile(DeliveryType type, String label, IconData icon) {
     final isSelected = selectedDeliveryType == type;
+    final foreground = isSelected ? Colors.white : AppColors.grey900;
+
     return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          onDeliveryTypeChanged(type);
-          _log.infoWithContext(
-            'Delivery type changed',
-            {'type': type.name},
-          );
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(11),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: accentColor.withOpacity(0.2),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected ? accentColor : Colors.black,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-              fontSize: 12,
-              height: 1.4,
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: label,
+        child: GestureDetector(
+          onTap: () {
+            onDeliveryTypeChanged(type);
+            _log.infoWithContext(
+              'Delivery type changed',
+              {'type': type.name},
+            );
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            constraints: const BoxConstraints(minHeight: 76),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primaryOrange : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primaryOrange.withOpacity(0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ]
+                  : takshSoftShadow,
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: foreground, size: 24),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: foreground,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                    fontSize: 12,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

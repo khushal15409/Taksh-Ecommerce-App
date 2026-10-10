@@ -267,8 +267,9 @@ class _HomePageState extends State<_HomePageContent> {
             selectedAddress = addressState.selectedAddress;
           }
 
-          return Scaffold(
-            backgroundColor: Colors.white,
+          return TakshSoftBackground(
+            child: Scaffold(
+            backgroundColor: Colors.transparent,
             body: RefreshIndicator(
               onRefresh: _handleRefresh,
               edgeOffset: 80,
@@ -288,6 +289,7 @@ class _HomePageState extends State<_HomePageContent> {
                 ],
               ),
             ),
+            ),
           );
         },
       ),
@@ -297,11 +299,9 @@ class _HomePageState extends State<_HomePageContent> {
   Widget _buildScrollableBody() {
     final minBodyHeight = MediaQuery.of(context).size.height * 0.7;
 
-    return TakshSoftBackground(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: minBodyHeight),
-        child: _buildContent(),
-      ),
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minBodyHeight),
+      child: _buildContent(),
     );
   }
 

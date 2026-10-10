@@ -33,16 +33,21 @@ class TakshSoftBackground extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFFFFEEDC), Color(0xFFFFFAF5), Colors.white],
-          stops: [0.0, 0.3, 0.6],
+          colors: [
+            Color(0xFFFFDFC0),
+            Color(0xFFFFEEDC),
+            Color(0xFFFFFAF5),
+            Colors.white,
+          ],
+          stops: [0.0, 0.18, 0.38, 0.65],
         ),
       ),
       child: Stack(
         children: [
           const Positioned(
-            top: -90,
-            right: -70,
-            child: _Glow(size: 300, color: Color(0xFF3CAE5C), alpha: 0.22),
+            top: -110,
+            right: -110,
+            child: _Glow(size: 300, color: Color(0xFF7ED9A0), alpha: 0.5),
           ),
           const Positioned(
             top: -110,

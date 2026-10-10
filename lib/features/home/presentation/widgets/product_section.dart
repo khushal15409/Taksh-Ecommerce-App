@@ -27,7 +27,7 @@ class ProductSection extends StatelessWidget {
   });
 
   /// Height of the card's text area below the (square) image.
-  static const double _infoHeight = 112;
+  static const double _infoHeight = 100;
 
   @override
   Widget build(BuildContext context) {
@@ -58,13 +58,13 @@ class ProductSection extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        const spacing = 12.0;
-        final visibleColumns = isCompactGrid ? 3 : 2;
-        const peekFraction = 0.35;
+        const spacing = 10.0;
+        const visibleColumns = 3;
+        const peekFraction = 0.2;
         final itemWidth =
             (constraints.maxWidth - (spacing * (visibleColumns - 1))) /
             (visibleColumns + peekFraction);
-        final rowHeight = itemWidth + (_infoHeight * textScale);
+        final rowHeight = (itemWidth * 0.9) + (_infoHeight * textScale);
 
         return SizedBox(
           height: rowHeight + 6,

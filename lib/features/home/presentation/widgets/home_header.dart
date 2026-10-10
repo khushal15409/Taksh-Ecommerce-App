@@ -12,7 +12,9 @@ import 'package:taksh_e_commerce/l10n/app_localizations.dart';
 /// Home page header: logo + delivery address + notifications, search bar and
 /// the three delivery-mode tiles. Scrolls with the page content.
 class HomeHeader extends StatelessWidget {
-  static const String _homeLogoAssetPath = 'assets/images/image.png';
+  // Same Taksh logo as image.png, with the white background made transparent.
+  static const String _homeLogoAssetPath =
+      'assets/images/taksh_logo_transparent.png';
   static final _log = loggerWithContext({
     'feature': 'home',
     'widget': 'HomeHeader',
@@ -36,15 +38,9 @@ class HomeHeader extends StatelessWidget {
     final topPadding = MediaQuery.of(context).padding.top;
 
     return SliverToBoxAdapter(
-      child: Container(
+      // Transparent: the page-level TakshSoftBackground shows through.
+      child: Padding(
         padding: EdgeInsets.fromLTRB(16, topPadding + 8, 16, 14),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFE6CC), Color(0xFFFFF3E6)],
-          ),
-        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -88,8 +84,8 @@ class HomeHeader extends StatelessWidget {
 
   Widget _buildLogo() {
     return SizedBox(
-      height: 44,
-      width: 96,
+      height: 48,
+      width: 118,
       child: Image.asset(
         _homeLogoAssetPath,
         fit: BoxFit.contain,

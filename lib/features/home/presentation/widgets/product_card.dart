@@ -166,22 +166,26 @@ class _ProductCardState extends State<ProductCard>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildImageArea(product, discount, isCompact)),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.showDeliveryTime) ...[
-                      _buildDeliveryChip(isCompact),
-                      const SizedBox(height: 4),
+              AspectRatio(
+                aspectRatio: 1.05,
+                child: _buildImageArea(product, discount, isCompact),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (widget.showDeliveryTime) ...[
+                        _buildDeliveryChip(isCompact),
+                        const SizedBox(height: 4),
+                      ],
+                      _buildName(product, isCompact),
+                      _buildRating(product),
+                      const Spacer(),
+                      _buildPriceRow(product, discount != null, isCompact),
                     ],
-                    _buildName(product, isCompact),
-                    _buildRating(product),
-                    const SizedBox(height: 4),
-                    _buildPriceRow(product, discount != null, isCompact),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -362,39 +366,31 @@ class _ProductCardState extends State<ProductCard>
   }
 
   Widget _buildPriceRow(ProductModel product, bool hasDiscount, bool isCompact) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.end,
+      spacing: 5,
       children: [
-        Flexible(
-          child: Text(
-            formatRupees(product.salePrice),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: AppColors.grey900,
-              fontSize: isCompact ? 14 : 15,
-              fontWeight: FontWeight.w800,
-            ),
+        Text(
+          formatRupees(product.salePrice),
+          maxLines: 1,
+          style: TextStyle(
+            color: AppColors.grey900,
+            fontSize: isCompact ? 14 : 15,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        if (hasDiscount) ...[
-          const SizedBox(width: 5),
-          Flexible(
-            child: Text(
-              formatRupees(product.originalPrice),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.grey500,
-                decoration: TextDecoration.lineThrough,
-                decorationColor: AppColors.grey500,
-                fontWeight: FontWeight.w500,
-              ),
+        if (hasDiscount)
+          Text(
+            formatRupees(product.originalPrice),
+            maxLines: 1,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.grey500,
+              decoration: TextDecoration.lineThrough,
+              decorationColor: AppColors.grey500,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
       ],
     );
   }

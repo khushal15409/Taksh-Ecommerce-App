@@ -39,12 +39,15 @@ class QuickDeliveryPromoBanner extends StatelessWidget {
                   bottom: 4,
                   child: SvgPicture.asset(
                     'assets/illustrations/scooter_clock.svg',
-                    height: 132,
+                    height: 124,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 16, 0, 16),
-                  child: Column(
+                  child: FractionallySizedBox(
+                    widthFactor: 0.52,
+                    alignment: Alignment.centerLeft,
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -97,6 +100,7 @@ class QuickDeliveryPromoBanner extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
                   ),
                 ),
               ],

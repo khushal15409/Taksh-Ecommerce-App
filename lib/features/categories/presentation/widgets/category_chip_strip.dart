@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/utils/media_url.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/category.dart';
 
 /// Horizontal strip of parent categories; the selected one is highlighted.
@@ -28,7 +29,7 @@ class CategoryChipStrip extends StatelessWidget {
         itemBuilder: (context, index) {
           final category = categories[index];
           final isSelected = index == selectedIndex;
-          final imageUrl = category.iconUrl ?? category.imageUrl;
+          final imageUrl = resolveMediaUrl(category.iconUrl ?? category.imageUrl);
           final fallback = Icon(
             Icons.category_outlined,
             size: 22,

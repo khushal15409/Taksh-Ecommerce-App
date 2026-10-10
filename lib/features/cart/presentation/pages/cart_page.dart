@@ -12,6 +12,7 @@ import 'package:taksh_e_commerce/features/cart/presentation/cubit/cart_cubit.dar
 import 'package:taksh_e_commerce/features/cart/presentation/cubit/cart_state.dart';
 import 'package:taksh_e_commerce/features/checkout/domain/entities/selected_checkout_items.dart';
 import 'package:taksh_e_commerce/l10n/app_localizations.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 
 /// Cart page - displays quick and standard delivery carts in separate tabs.
 class CartPage extends StatefulWidget {
@@ -103,16 +104,19 @@ class _CartPageState extends State<CartPage>
   }
 
   Widget _buildCartContent(BuildContext context) {
-    return Scaffold(
+    return TakshSoftBackground(
+      art: TakshArt.home,
+      artHeight: 210,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.cart),
         centerTitle: false,
-        backgroundColor: Theme.of(context).brightness == Brightness.light
-            ? AppColors.primaryOrange
-            : Theme.of(context).appBarTheme.backgroundColor,
-        foregroundColor: Theme.of(context).brightness == Brightness.light
-            ? Colors.white
-            : Theme.of(context).appBarTheme.foregroundColor,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        foregroundColor: AppColors.grey900,
         actions: [
           BlocBuilder<CartCubit, CartState>(
             builder: (context, state) {
@@ -233,6 +237,7 @@ class _CartPageState extends State<CartPage>
             );
           },
         ),
+      ),
       ),
     );
   }

@@ -18,7 +18,7 @@ class SubcategoriesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 6),
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,

@@ -27,7 +27,7 @@ class ProductSection extends StatelessWidget {
   });
 
   /// Height of the card's text area below the (square) image.
-  static const double _infoHeight = 100;
+  static const double _infoHeight = 116;
 
   @override
   Widget build(BuildContext context) {

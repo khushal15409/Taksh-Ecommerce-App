@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taksh_e_commerce/core/routing/app_routes.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/utils/media_url.dart';
 import 'package:taksh_e_commerce/core/utils/logger/logger.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/delivery_type_selector.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/category.dart';
@@ -161,7 +162,7 @@ class _HomeCategoryStripState extends State<HomeCategoryStrip> {
   }
 
   Widget _buildIcon(Category category) {
-    final iconUrl = category.iconUrl ?? category.imageUrl;
+    final iconUrl = resolveMediaUrl(category.iconUrl ?? category.imageUrl);
     final fallback = Icon(
       _iconForCategoryName(category.name),
       size: 26,

@@ -9,6 +9,7 @@ import 'package:taksh_e_commerce/features/wishlist/domain/entities/wishlist_item
 import 'package:taksh_e_commerce/features/wishlist/presentation/cubit/wishlist_cubit.dart';
 import 'package:taksh_e_commerce/features/wishlist/presentation/cubit/wishlist_state.dart';
 import 'package:taksh_e_commerce/l10n/app_localizations.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 
 /// Wishlist page – displays all products the user has added to their wishlist.
 /// Supports pull-to-refresh and item removal via swipe or icon button.
@@ -30,10 +31,14 @@ class _WishlistPageState extends State<WishlistPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    return TakshSoftBackground(
+      art: TakshArt.home,
+      artHeight: 210,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text(l10n.wishlist),
@@ -98,6 +103,7 @@ class _WishlistPageState extends State<WishlistPage> {
             ),
           );
         },
+      ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taksh_e_commerce/core/routing/app_routes.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/utils/media_url.dart';
 import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/cart/presentation/widgets/product_add_to_cart_button.dart';
 import 'package:taksh_e_commerce/features/home/domain/entities/product_variant_info.dart';
@@ -38,7 +39,7 @@ class CategoryProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = product.primaryImageUrl;
+    final imageUrl = resolveMediaUrl(product.primaryImageUrl);
     final displayPrice = product.salePrice ?? product.originalPrice;
     final discount = _discountPercentage;
 
@@ -126,7 +127,7 @@ class CategoryProductCard extends StatelessWidget {
       isQuickDelivery: showDeliveryTime,
       variants: ProductVariantInfo.fromProductVariants(product.variants),
       productName: product.name,
-      productImageUrl: product.primaryImageUrl,
+      productImageUrl: resolveMediaUrl(product.primaryImageUrl),
     );
   }
 

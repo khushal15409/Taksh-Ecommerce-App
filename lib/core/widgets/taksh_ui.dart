@@ -19,7 +19,8 @@ String formatRupees(double value) {
   return '₹${isWhole ? value.toStringAsFixed(0) : value.toStringAsFixed(2)}';
 }
 
-/// Warm peach-to-white page background used behind the home screen content.
+/// Page backdrop: peach-to-white gradient with soft orange and green glows in
+/// the top corners (the warm/fresh look of the Taksh design).
 class TakshSoftBackground extends StatelessWidget {
   final Widget child;
 
@@ -33,10 +34,48 @@ class TakshSoftBackground extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [Color(0xFFFFEEDC), Color(0xFFFFFAF5), Colors.white],
-          stops: [0.0, 0.35, 0.7],
+          stops: [0.0, 0.3, 0.6],
         ),
       ),
-      child: child,
+      child: Stack(
+        children: [
+          const Positioned(
+            top: -90,
+            right: -70,
+            child: _Glow(size: 300, color: Color(0xFF3CAE5C), alpha: 0.22),
+          ),
+          const Positioned(
+            top: -110,
+            left: -90,
+            child: _Glow(size: 280, color: Color(0xFFFF7A1A), alpha: 0.2),
+          ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _Glow extends StatelessWidget {
+  final double size;
+  final Color color;
+  final double alpha;
+
+  const _Glow({required this.size, required this.color, required this.alpha});
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color.withOpacity(alpha), color.withOpacity(0)],
+          ),
+        ),
+      ),
     );
   }
 }

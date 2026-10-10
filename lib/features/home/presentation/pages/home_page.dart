@@ -25,6 +25,7 @@ import 'package:taksh_e_commerce/features/home/presentation/widgets/dashboard_sh
 import 'package:taksh_e_commerce/features/home/presentation/widgets/express_dashboard_content.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/home_category_strip.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/home_header.dart';
+import 'package:taksh_e_commerce/features/home/presentation/widgets/quick_delivery_promo_banner.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/delivery_type_selector.dart';
 import 'package:taksh_e_commerce/features/home_service/presentation/widgets/home_service_content.dart';
 
@@ -328,6 +329,9 @@ class _HomePageState extends State<_HomePageContent> {
                     dashboard: dashboard,
                     categoryStrip: const HomeCategoryStrip(
                       deliveryType: DeliveryType.standard,
+                    ),
+                    promoBanner: QuickDeliveryPromoBanner(
+                      onTap: () => _onDeliveryTypeChanged(DeliveryType.quick),
                     ),
                   );
                 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:taksh_e_commerce/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taksh_e_commerce/core/constants/app_constants.dart';
 import 'package:taksh_e_commerce/core/routing/app_routes.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:taksh_e_commerce/features/auth/presentation/bloc/auth_state.dart';
 import 'package:taksh_e_commerce/features/address/domain/entities/address.dart';
@@ -220,8 +222,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    return TakshSoftBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         toolbarHeight: 64,
         titleSpacing: 16,
@@ -244,7 +247,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
         ),
         centerTitle: false,
         elevation: 0,
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
       ),
@@ -279,6 +282,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             ],
           );
         },
+      ),
       ),
     );
   }
@@ -324,11 +328,12 @@ class _CategoriesPageState extends State<CategoriesPage> {
           height: 52,
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Theme.of(context).dividerColor),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: takshSoftShadow,
           ),
           child: SegmentedButton<DeliveryType>(
+            showSelectedIcon: false,
             segments: [
               ButtonSegment(
                 value: DeliveryType.standard,
@@ -353,17 +358,17 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
               shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               backgroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return AppColors.primaryOrange.withOpacity(0.12);
+                  return AppColors.primaryOrange;
                 }
                 return Colors.transparent;
               }),
               foregroundColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return AppColors.primaryOrange;
+                  return Colors.white;
                 }
                 return Theme.of(
                   context,
@@ -472,7 +477,16 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
     if (state is! ProductListLoaded ||
         state.paginatedProducts.products.isEmpty) {
-      return Center(child: Text(AppLocalizations.of(context)!.noProductsFound));
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset('assets/illustrations/grocery_basket.svg', height: 110),
+            const SizedBox(height: 8),
+            Text(AppLocalizations.of(context)!.noProductsFound),
+          ],
+        ),
+      );
     }
 
     return LayoutBuilder(

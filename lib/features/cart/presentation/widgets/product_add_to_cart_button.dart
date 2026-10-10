@@ -76,10 +76,15 @@ class ProductAddToCartButton extends StatefulWidget {
 }
 
 class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
+  /// Compact "+" button.
   static const BoxConstraints _outlinedGreenFixedSize = BoxConstraints.tightFor(
-    width: 72,
-    height: 26,
+    width: 34,
+    height: 34,
   );
+
+  /// Quantity stepper (- qty +).
+  static const BoxConstraints _outlinedGreenStepperSize =
+      BoxConstraints.tightFor(width: 88, height: 34);
 
   /// Larger height for button when showing "X options" subtitle
   static const BoxConstraints _outlinedGreenWithOptionsSize =
@@ -556,11 +561,11 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
     return false;
   }
 
-  /// Tappable ADD button shown when the product is out of stock.
-  /// Looks identical to the normal ADD button but shows a snackbar on tap
+  /// Tappable "+" button shown when the product is out of stock.
+  /// Looks like the normal add button (greyed out) but shows a snackbar on tap
   /// instead of adding the item to the cart.
   Widget _buildOutOfStockChip() {
-    final isOutlinedGreen =
+    final isCompactPlus =
         widget.style == ProductAddToCartButtonStyle.outlinedGreen;
 
     return Material(
@@ -583,43 +588,41 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
               ),
             );
         },
-        borderRadius: BorderRadius.circular(isOutlinedGreen ? 17 : 12),
+        borderRadius: BorderRadius.circular(isCompactPlus ? 10 : 12),
         child: Container(
-          constraints: isOutlinedGreen ? _outlinedGreenFixedSize : null,
+          constraints: isCompactPlus ? _outlinedGreenFixedSize : null,
           alignment: Alignment.center,
           padding: EdgeInsets.symmetric(
-            horizontal: isOutlinedGreen ? 0 : 16,
-            vertical: isOutlinedGreen ? 0 : 8,
+            horizontal: isCompactPlus ? 0 : 16,
+            vertical: isCompactPlus ? 0 : 8,
           ),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.96),
-            borderRadius: BorderRadius.circular(isOutlinedGreen ? 17 : 12),
-            border: isOutlinedGreen
-                ? Border.all(color: AppColors.primaryOrange, width: 2)
-                : null,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.1),
-                blurRadius: isOutlinedGreen ? 2 : 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            color: isCompactPlus
+                ? AppColors.grey300
+                : AppColors.white.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(isCompactPlus ? 10 : 12),
+            boxShadow: isCompactPlus
+                ? null
+                : [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
-          child: SizedBox(
-            width: double.infinity,
-            child: Text(
-              'ADD',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isOutlinedGreen
-                    ? AppColors.primaryOrange
-                    : AppColors.primaryOrange,
-                fontWeight: FontWeight.w800,
-                fontSize: isOutlinedGreen ? 13 : 12,
-                letterSpacing: isOutlinedGreen ? 1.5 : 0.5,
-              ),
-            ),
-          ),
+          child: isCompactPlus
+              ? const Icon(Icons.add_rounded, size: 20, color: Colors.white)
+              : const Text(
+                  'ADD',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: AppColors.primaryOrange,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                    letterSpacing: 0.5,
+                  ),
+                ),
         ),
       ),
     );
@@ -633,6 +636,9 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
   }) {
     final isOutlinedGreen =
         widget.style == ProductAddToCartButtonStyle.outlinedGreen;
+    // Compact orange "+" square, unless the product has several options and
+    // needs the "ADD / N options" label.
+    final isPlus = isOutlinedGreen && !showOptionsCount;
 
     return Material(
       color: Colors.transparent,
@@ -646,7 +652,7 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
                   _addToCart();
                 }
               },
-        borderRadius: BorderRadius.circular(isOutlinedGreen ? 17 : 12),
+        borderRadius: BorderRadius.circular(isOutlinedGreen ? 10 : 12),
         child: Container(
           constraints: isOutlinedGreen
               ? (showOptionsCount
@@ -659,15 +665,19 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
             vertical: isOutlinedGreen ? 0 : 8,
           ),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.96),
-            borderRadius: BorderRadius.circular(isOutlinedGreen ? 17 : 12),
-            border: isOutlinedGreen
+            color: isPlus
+                ? AppColors.primaryOrange
+                : AppColors.white.withValues(alpha: 0.96),
+            borderRadius: BorderRadius.circular(isOutlinedGreen ? 10 : 12),
+            border: isOutlinedGreen && !isPlus
                 ? Border.all(color: AppColors.primaryOrange, width: 2)
                 : null,
             boxShadow: [
               BoxShadow(
-                color: AppColors.black.withValues(alpha: 0.1),
-                blurRadius: isOutlinedGreen ? 2 : 4,
+                color: isPlus
+                    ? AppColors.primaryOrange.withValues(alpha: 0.3)
+                    : AppColors.black.withValues(alpha: 0.1),
+                blurRadius: isPlus ? 6 : (isOutlinedGreen ? 2 : 4),
                 offset: const Offset(0, 2),
               ),
             ],
@@ -679,12 +689,12 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isOutlinedGreen
-                          ? AppColors.primaryOrange
-                          : AppColors.primaryOrange,
+                      isPlus ? Colors.white : AppColors.primaryOrange,
                     ),
                   ),
                 )
+              : isPlus
+              ? const Icon(Icons.add_rounded, size: 22, color: Colors.white)
               : SizedBox(
                   width: double.infinity,
                   child: Column(
@@ -695,9 +705,7 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
                         'ADD',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: isOutlinedGreen
-                              ? AppColors.primaryOrange
-                              : AppColors.primaryOrange,
+                          color: AppColors.primaryOrange,
                           fontWeight: FontWeight.w800,
                           fontSize: isOutlinedGreen ? 13 : 12,
                           letterSpacing: isOutlinedGreen ? 1.5 : 0.5,
@@ -709,10 +717,8 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
                         Text(
                           '$_activeVariantCount options',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isOutlinedGreen
-                                ? AppColors.primaryOrange
-                                : AppColors.primaryOrange,
+                          style: const TextStyle(
+                            color: AppColors.primaryOrange,
                             fontWeight: FontWeight.w600,
                             fontSize: 9,
                             letterSpacing: 0.2,
@@ -739,24 +745,24 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
         widget.style == ProductAddToCartButtonStyle.outlinedGreen;
 
     return Container(
-      constraints: isOutlinedGreen ? _outlinedGreenFixedSize : null,
+      constraints: isOutlinedGreen ? _outlinedGreenStepperSize : null,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isOutlinedGreen
-              ? const [Color(0xFF43A047), Color(0xFF2E7D32)]
+              ? [AppColors.primaryOrange, AppColors.primaryOrangeDark]
               : [AppColors.primaryOrange, AppColors.primaryOrangeDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(isOutlinedGreen ? 17 : 12),
         border: isOutlinedGreen
-            ? Border.all(color: const Color(0xFF2E7D32), width: 1.5)
+            ? Border.all(color: AppColors.primaryOrangeDark, width: 1.5)
             : null,
         boxShadow: [
           BoxShadow(
             color:
                 (isOutlinedGreen
-                        ? const Color(0xFF2E7D32)
+                        ? AppColors.primaryOrangeDark
                         : AppColors.primaryOrange)
                     .withValues(alpha: 0.35),
             blurRadius: 6,
@@ -847,20 +853,20 @@ class _ProductAddToCartButtonState extends State<ProductAddToCartButton> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isOutlinedGreen
-                ? const [Color(0xFF43A047), Color(0xFF2E7D32)]
+                ? [AppColors.primaryOrange, AppColors.primaryOrangeDark]
                 : [AppColors.primaryOrange, AppColors.primaryOrangeDark],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(isOutlinedGreen ? 17 : 12),
           border: isOutlinedGreen
-              ? Border.all(color: const Color(0xFF2E7D32), width: 1.5)
+              ? Border.all(color: AppColors.primaryOrangeDark, width: 1.5)
               : null,
           boxShadow: [
             BoxShadow(
               color:
                   (isOutlinedGreen
-                          ? const Color(0xFF2E7D32)
+                          ? AppColors.primaryOrangeDark
                           : AppColors.primaryOrange)
                       .withValues(alpha: 0.35),
               blurRadius: 6,

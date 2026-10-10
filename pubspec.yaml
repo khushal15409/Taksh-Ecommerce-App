@@ -95,6 +95,7 @@ flutter:
     - docs/splash_logo.jpeg
     - "docs/Image (7).jpg"
     - assets/images/
+    - assets/illustrations/
     # - assets/icons/
 
   # fonts:

@@ -7,6 +7,7 @@ import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/cart/presentation/widgets/product_add_to_cart_button.dart';
 import 'package:taksh_e_commerce/features/home/domain/entities/product_variant_info.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/product.dart';
+import 'package:taksh_e_commerce/features/wishlist/presentation/widgets/wishlist_heart_button.dart';
 
 /// Product card widget used in the categories page grid
 class CategoryProductCard extends StatelessWidget {
@@ -150,6 +151,11 @@ class CategoryProductCard extends StatelessWidget {
         ),
         if (_buildVisualBadge(discount) case final badge?)
           Positioned(top: 10, left: 10, child: badge),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: WishlistHeartButton(productId: product.id),
+        ),
         Positioned.fill(
           child: Padding(
             padding: const EdgeInsets.all(6),

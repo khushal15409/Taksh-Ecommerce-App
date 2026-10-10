@@ -6,6 +6,7 @@ import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/cart/presentation/widgets/product_add_to_cart_button.dart';
 import 'package:taksh_e_commerce/features/home/data/models/product_model.dart';
 import 'package:taksh_e_commerce/features/product/domain/usecases/get_ecommerce_product_details.dart';
+import 'package:taksh_e_commerce/features/wishlist/presentation/widgets/wishlist_heart_button.dart';
 
 /// Enum to define different product card layouts
 enum ProductCardVariant {
@@ -218,6 +219,11 @@ class _ProductCardState extends State<ProductCard>
         ),
         if (discount != null)
           Positioned(top: 8, left: 8, child: TakshDiscountBadge(percent: discount)),
+        Positioned(
+          top: 6,
+          right: 6,
+          child: WishlistHeartButton(productId: product.id),
+        ),
         if (!product.inStock)
           Positioned.fill(
             child: ClipRRect(

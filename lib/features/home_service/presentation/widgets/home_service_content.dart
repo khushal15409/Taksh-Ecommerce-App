@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:taksh_e_commerce/core/di/injector.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/core/theme/app_spacing.dart';
@@ -171,20 +172,36 @@ class _ServicesViewState extends State<_ServicesView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l10n.homeServices,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                l10n.homeServicesSubtitle,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[700],
-                  height: 1.4,
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.homeServices,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.black,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          l10n.homeServicesSubtitle,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: Colors.grey[700], height: 1.4),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  SvgPicture.asset(
+                    'assets/illustrations/home_garden.svg',
+                    height: 104,
+                  ),
+                ],
               ),
               if (widget.services.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.md),

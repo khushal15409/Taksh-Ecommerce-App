@@ -20,10 +20,14 @@ class DashboardContent extends StatefulWidget {
   /// Optional widget (category shortcuts) shown right below the banners.
   final Widget? categoryStrip;
 
+  /// Optional call-to-action shown after the first product section.
+  final Widget? promoBanner;
+
   const DashboardContent({
     super.key,
     required this.dashboard,
     this.categoryStrip,
+    this.promoBanner,
   });
 
   @override
@@ -148,7 +152,13 @@ class _DashboardContentState extends State<DashboardContent> {
             return const SizedBox.shrink();
           },
         ),
-        ...productWidgets,
+        ...productWidgets.take(1),
+        if (widget.promoBanner != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: widget.promoBanner,
+          ),
+        ...productWidgets.skip(1),
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: CategoryCatalogSection(

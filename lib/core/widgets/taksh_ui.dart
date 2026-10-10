@@ -19,6 +19,14 @@ String formatRupees(double value) {
   return '₹${isWhole ? value.toStringAsFixed(0) : value.toStringAsFixed(2)}';
 }
 
+/// Artwork + accent color chosen for a screen's top area.
+class TakshArtStyle {
+  final String art;
+  final Color accent;
+
+  const TakshArtStyle(this.art, this.accent);
+}
+
 /// Local top-of-screen artwork (sliced from the Taksh design mockup).
 class TakshArt {
   TakshArt._();
@@ -28,19 +36,56 @@ class TakshArt {
   static const String services = 'assets/illustrations/bg_services.jpg';
   static const String electronics = 'assets/illustrations/bg_electronics.jpg';
 
-  /// Picks artwork for a product category from its name, falling back to the
-  /// generic home artwork.
-  static String forCategory(String? name) {
+  static const Color peach = Color(0xFFFFDFC0);
+  static const Color mint = Color(0xFFCDEFD8);
+  static const Color sky = Color(0xFFCFE8FF);
+  static const Color lilac = Color(0xFFE2D8FF);
+  static const Color rose = Color(0xFFFFD6E2);
+  static const Color lemon = Color(0xFFFFEFB8);
+  static const Color aqua = Color(0xFFC8EEF0);
+  static const Color apricot = Color(0xFFFFD2B0);
+
+  static const List<Color> _palette = [
+    peach,
+    mint,
+    sky,
+    lilac,
+    rose,
+    lemon,
+    aqua,
+    apricot,
+  ];
+
+  static bool _has(String n, List<String> words) => words.any(n.contains);
+
+  /// Picks the artwork and accent for a category. Known kinds of category get
+  /// matching artwork; every other category keeps a neutral illustration but
+  /// gets its own accent color (from [seed], normally the category id), so
+  /// switching categories always changes the top of the page.
+  static TakshArtStyle forCategory(String? name, {int? seed}) {
     final n = (name ?? '').toLowerCase();
-    const electronicsWords = ['electronic', 'mobile', 'laptop', 'gadget', 'appliance', 'phone', 'audio', 'camera'];
-    const groceryWords = ['grocer', 'fruit', 'veg', 'dairy', 'snack', 'food', 'beverage', 'bakery', 'kitchen'];
-    if (electronicsWords.any(n.contains)) return electronics;
-    if (groceryWords.any(n.contains)) return grocery;
-    return home;
+    final fallbackAccent = _palette[((seed ?? n.hashCode) & 0x7fffffff) % _palette.length];
+
+    if (_has(n, ['electronic', 'mobile', 'laptop', 'gadget', 'appliance', 'phone', 'audio', 'camera', 'computer'])) {
+      return const TakshArtStyle(electronics, apricot);
+    }
+    if (_has(n, ['grocer', 'fruit', 'veg', 'dairy', 'snack', 'food', 'beverage', 'bakery', 'kitchen', 'staple', 'masala'])) {
+      return const TakshArtStyle(grocery, mint);
+    }
+    if (_has(n, ['home', 'furniture', 'decor', 'garden', 'house', 'living'])) {
+      return const TakshArtStyle(services, sky);
+    }
+    if (_has(n, ['fashion', 'cloth', 'wear', 'shoe', 'footwear', 'apparel'])) {
+      return const TakshArtStyle(home, rose);
+    }
+    if (_has(n, ['beauty', 'cosmetic', 'personal', 'care', 'health'])) {
+      return const TakshArtStyle(home, lilac);
+    }
+    return TakshArtStyle(home, fallbackAccent);
   }
 
-  /// Horizontal focus of each artwork so the subject stays visible when the
-  /// image is cropped to the phone width.
+  /// Focus of each artwork so its subject stays visible when the image is
+  /// cropped to the phone width.
   static Alignment alignmentFor(String art) {
     if (art == services) return const Alignment(0.9, -0.2);
     if (art == grocery) return const Alignment(0.85, 0.2);
@@ -64,32 +109,46 @@ class TakshSoftBackground extends StatelessWidget {
   /// edge then fades in as well.
   final double artTop;
 
+  /// Top color of the page gradient (defaults to the peach of the home page).
+  final Color accent;
+
   const TakshSoftBackground({
     super.key,
     required this.child,
     this.art,
     this.artHeight = 300,
     this.artTop = 0,
+    this.accent = TakshArt.peach,
   });
 
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.paddingOf(context).top;
 
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFFFDFC0),
-            Color(0xFFFFEEDC),
-            Color(0xFFFFFAF5),
-            Colors.white,
-          ],
-          stops: [0.0, 0.18, 0.38, 0.65],
-        ),
-      ),
+    // The accent color and the artwork cross-fade when they change (for
+    // example when another category is selected).
+    return TweenAnimationBuilder<Color?>(
+      tween: ColorTween(end: accent),
+      duration: const Duration(milliseconds: 450),
+      builder: (context, color, content) {
+        final top = color ?? accent;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                top,
+                Color.lerp(top, Colors.white, 0.55)!,
+                Color.lerp(top, Colors.white, 0.85)!,
+                Colors.white,
+              ],
+              stops: const [0.0, 0.18, 0.38, 0.65],
+            ),
+          ),
+          child: content,
+        );
+      },
       child: Stack(
         children: [
           if (art != null)
@@ -99,33 +158,39 @@ class TakshSoftBackground extends StatelessWidget {
               right: 0,
               height: artTop > 0 ? artHeight : artHeight + topInset,
               child: IgnorePointer(
-                child: ShaderMask(
-                  blendMode: BlendMode.dstIn,
-                  shaderCallback: (rect) => LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: artTop > 0
-                        ? const [
-                            Colors.transparent,
-                            Colors.white,
-                            Colors.white,
-                            Colors.transparent,
-                          ]
-                        : const [
-                            Colors.white,
-                            Colors.white,
-                            Colors.transparent,
-                          ],
-                    stops: artTop > 0
-                        ? const [0.0, 0.22, 0.62, 1.0]
-                        : const [0.0, 0.62, 1.0],
-                  ).createShader(rect),
-                  child: Image.asset(
-                    art!,
-                    fit: BoxFit.cover,
-                    alignment: TakshArt.alignmentFor(art!),
-                    errorBuilder: (context, error, stack) =>
-                        const SizedBox.shrink(),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 450),
+                  child: ShaderMask(
+                    key: ValueKey<String>(art!),
+                    blendMode: BlendMode.dstIn,
+                    shaderCallback: (rect) => LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: artTop > 0
+                          ? const [
+                              Colors.transparent,
+                              Colors.white,
+                              Colors.white,
+                              Colors.transparent,
+                            ]
+                          : const [
+                              Colors.white,
+                              Colors.white,
+                              Colors.transparent,
+                            ],
+                      stops: artTop > 0
+                          ? const [0.0, 0.22, 0.62, 1.0]
+                          : const [0.0, 0.62, 1.0],
+                    ).createShader(rect),
+                    child: SizedBox.expand(
+                      child: Image.asset(
+                        art!,
+                        fit: BoxFit.cover,
+                        alignment: TakshArt.alignmentFor(art!),
+                        errorBuilder: (context, error, stack) =>
+                            const SizedBox.shrink(),
+                      ),
+                    ),
                   ),
                 ),
               ),

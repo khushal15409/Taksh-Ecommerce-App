@@ -144,15 +144,13 @@ class CategoryProductCard extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(outerRadius),
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withOpacity(0.65),
+              color: Colors.white,
             ),
           ),
         ),
         Positioned.fill(
           child: Padding(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(2),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(14),
               child: imageUrl != null && imageUrl.isNotEmpty

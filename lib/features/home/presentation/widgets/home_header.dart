@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:taksh_e_commerce/core/routing/app_routes.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/core/utils/logger/logger.dart';
+import 'package:taksh_e_commerce/core/widgets/animated_taksh_logo.dart';
 import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/address/domain/entities/address.dart';
 import 'package:taksh_e_commerce/features/home/presentation/widgets/address_header_widget.dart';
@@ -61,16 +62,20 @@ class HomeHeader extends StatelessWidget {
                 _buildNotificationButton(),
               ],
             ),
-            const SizedBox(height: 14),
-            TakshSearchBar(
-              hint: AppLocalizations.of(context)!.searchHint,
-              onTap: () {
-                _log.infoWithContext('Search bar tapped', {
-                  'action': 'user_action',
-                });
-                context.push(AppRoutes.search);
-              },
-            ),
+            // The product search bar is hidden in Home Service mode, where the
+            // services list has its own search field.
+            if (selectedDeliveryType != DeliveryType.services) ...[
+              const SizedBox(height: 14),
+              TakshSearchBar(
+                hint: AppLocalizations.of(context)!.searchHint,
+                onTap: () {
+                  _log.infoWithContext('Search bar tapped', {
+                    'action': 'user_action',
+                  });
+                  context.push(AppRoutes.search);
+                },
+              ),
+            ],
             const SizedBox(height: 14),
             DeliveryTypeSelector(
               selectedDeliveryType: selectedDeliveryType,
@@ -83,23 +88,18 @@ class HomeHeader extends StatelessWidget {
   }
 
   Widget _buildLogo() {
-    return SizedBox(
-      height: 48,
-      width: 118,
-      child: Image.asset(
-        _homeLogoAssetPath,
-        fit: BoxFit.contain,
-        alignment: Alignment.centerLeft,
-        filterQuality: FilterQuality.high,
-        errorBuilder: (context, error, stackTrace) => const Center(
-          child: Text(
-            'Taksh',
-            style: TextStyle(
-              color: AppColors.secondaryGreen,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.4,
-            ),
+    return const AnimatedTakshLogo(
+      asset: _homeLogoAssetPath,
+      width: 108,
+      height: 66,
+      fallback: Center(
+        child: Text(
+          'Taksh',
+          style: TextStyle(
+            color: AppColors.secondaryGreen,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.4,
           ),
         ),
       ),

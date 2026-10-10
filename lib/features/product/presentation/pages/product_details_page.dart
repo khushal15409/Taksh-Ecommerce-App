@@ -8,6 +8,9 @@ import 'package:go_router/go_router.dart';
 import 'package:taksh_e_commerce/core/routing/app_routes.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/core/di/injector.dart';
+import 'package:taksh_e_commerce/core/utils/media_url.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
+import 'package:taksh_e_commerce/features/product/presentation/widgets/product_image_gallery.dart';
 import 'package:taksh_e_commerce/core/widgets/app_error_toast.dart';
 import 'package:taksh_e_commerce/core/widgets/expandable_text.dart';
 import 'package:taksh_e_commerce/features/cart/domain/entities/cart.dart';
@@ -17,6 +20,7 @@ import 'package:taksh_e_commerce/features/cart/presentation/cubit/cart_state.dar
 import 'package:taksh_e_commerce/features/cart/presentation/widgets/add_to_cart_button.dart';
 import 'package:taksh_e_commerce/features/checkout/domain/entities/selected_checkout_items.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/product.dart';
+import 'package:taksh_e_commerce/features/product/domain/entities/product_image.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/product_variant.dart';
 import 'package:taksh_e_commerce/features/product/presentation/cubit/delivery_check_cubit.dart';
 import 'package:taksh_e_commerce/features/product/presentation/cubit/delivery_check_state.dart';
@@ -75,6 +79,15 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Top artwork follows the product's category.
+    final detailsState = context.watch<ProductCubit>().state;
+    final artStyle = detailsState is ProductDetailsLoaded
+        ? TakshArt.forCategory(
+            detailsState.product.category?.name,
+            seed: detailsState.product.categoryId,
+          )
+        : TakshArt.forCategory(null);
+
     return BlocProvider<SimilarProductsCubit>.value(
       value: _similarProductsCubit,
       child: BlocProvider<DeliveryCheckCubit>.value(
@@ -87,16 +100,22 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             if (didPop) return;
             context.go(AppRoutes.home);
           },
+          child: TakshSoftBackground(
+          art: artStyle.art,
+          accent: artStyle.accent,
+          artHeight: 230,
           child: Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
             elevation: 0,
             scrolledUnderElevation: 0,
             title: Text(AppLocalizations.of(context)!.productDetails),
             leading: IconButton(
+              style: IconButton.styleFrom(backgroundColor: Colors.white),
               onPressed: () => _handleBack(context),
-              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
             ),
             actions: [
               BlocBuilder<WishlistCubit, WishlistState>(
@@ -118,6 +137,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                           wishlistState.productId == productId);
 
                   return IconButton(
+                    style: IconButton.styleFrom(backgroundColor: Colors.white),
                     onPressed: productId == null || isLoading
                         ? null
                         : () {
@@ -185,18 +205,38 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           ),
         ),
         ),
+        ),
       ),
     );
   }
 
   Widget _buildProductContent(BuildContext context, Product product) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildImageGallery(product),
-          const SizedBox(height: 16),
+          const SizedBox(height: 44),
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 18,
+                  offset: Offset(0, -4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildImageGallery(product),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
           _buildTopMetaRow(product),
           const SizedBox(height: 10),
           Text(
@@ -250,6 +290,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             cardHeight: 210,
           ),
           const SizedBox(height: 80),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -532,53 +578,16 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   }
 
   Widget _buildImageGallery(Product product) {
-    final images = product.images ?? [];
-    final primaryUrl = product.primaryImageUrl;
-
-    if (primaryUrl == null && images.isEmpty) {
-      return Container(
-        height: 280,
-        decoration: BoxDecoration(
-          color: AppColors.grey100,
-          borderRadius: BorderRadius.circular(28),
-        ),
-        child: const Center(child: Icon(Icons.image_not_supported, size: 48)),
-      );
+    final urls = <String>[
+      for (final image in product.images ?? const <ProductImage>[])
+        if (resolveMediaUrl(image.imageUrl) case final url?) url,
+    ];
+    if (urls.isEmpty) {
+      final primary = resolveMediaUrl(product.primaryImageUrl);
+      if (primary != null) urls.add(primary);
     }
 
-    final displayImages = images.isNotEmpty ? images : [];
-
-    return Container(
-      height: 280,
-      decoration: BoxDecoration(
-        color: AppColors.grey100,
-        borderRadius: BorderRadius.circular(28),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: PageView.builder(
-        itemCount: displayImages.isNotEmpty ? displayImages.length : 1,
-        itemBuilder: (context, index) {
-          final imageUrl = displayImages.isNotEmpty
-              ? displayImages[index].imageUrl
-              : primaryUrl!;
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: CachedNetworkImage(
-              imageUrl: imageUrl,
-              fit: BoxFit.contain,
-              placeholder: (context, url) => Container(
-                color: AppColors.grey100,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: AppColors.grey100,
-                child: const Icon(Icons.broken_image, size: 48),
-              ),
-            ),
-          );
-        },
-      ),
-    );
+    return ProductImageGallery(urls: urls);
   }
 
   Widget _buildPriceRow(BuildContext context, Product product) {
@@ -619,13 +628,13 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFD7EEFF),
+              color: AppColors.primaryOrange.withOpacity(0.14),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
               discountLabel,
               style: const TextStyle(
-                color: Color(0xFF1685D1),
+                color: AppColors.primaryOrangeDark,
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
               ),
@@ -967,18 +976,27 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     required String title,
     required Widget child,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        child,
-      ],
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.grey50,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.grey200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          child,
+        ],
+      ),
     );
   }
 

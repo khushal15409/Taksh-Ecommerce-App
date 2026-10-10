@@ -222,10 +222,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final style = TakshArt.forCategory(
+      _categories.isEmpty ? null : _categories[_selectedIndex].name,
+      seed: _categories.isEmpty ? null : _categories[_selectedIndex].id,
+    );
+
     return TakshSoftBackground(
-      art: TakshArt.forCategory(
-        _categories.isEmpty ? null : _categories[_selectedIndex].name,
-      ),
+      art: style.art,
+      accent: style.accent,
       artHeight: 170,
       child: Scaffold(
       backgroundColor: Colors.transparent,

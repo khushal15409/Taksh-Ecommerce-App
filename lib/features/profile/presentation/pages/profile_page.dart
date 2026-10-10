@@ -31,6 +31,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:taksh_e_commerce/l10n/app_localizations.dart';
 import 'package:taksh_e_commerce/features/splash/presentation/cubit/splash_cubit.dart';
 import 'package:taksh_e_commerce/features/splash/presentation/cubit/splash_state.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 
 /// Profile page - displays user profile and settings
 class ProfilePage extends StatefulWidget {
@@ -53,7 +54,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return TakshSoftBackground(
+      art: TakshArt.home,
+      artHeight: 260,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is Authenticated) {
@@ -73,6 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         },
       ),
+      ),
     );
   }
 
@@ -83,13 +89,11 @@ class _ProfilePageState extends State<ProfilePage> {
         SliverAppBar(
           expandedHeight: 220,
           pinned: true,
-          backgroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           elevation: 0,
           flexibleSpace: FlexibleSpaceBar(
             background: Container(
-              decoration: const BoxDecoration(
-                gradient: IndiaGradients.profileHeaderGradient,
-              ),
               child: SafeArea(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

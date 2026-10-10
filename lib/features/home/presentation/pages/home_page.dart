@@ -268,6 +268,14 @@ class _HomePageState extends State<_HomePageContent> {
           }
 
           return TakshSoftBackground(
+            art: _selectedDeliveryType == DeliveryType.services
+                ? TakshArt.services
+                : TakshArt.home,
+            // Services: the house sits beside the "Home Services" heading,
+            // just below the header block.
+            artTop: _selectedDeliveryType == DeliveryType.services ? 215 : 0,
+            artHeight:
+                _selectedDeliveryType == DeliveryType.services ? 230 : 340,
             child: Scaffold(
             backgroundColor: Colors.transparent,
             body: RefreshIndicator(

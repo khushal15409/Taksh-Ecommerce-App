@@ -13,6 +13,7 @@ import 'package:taksh_e_commerce/features/product/domain/entities/recent_search.
 import 'package:taksh_e_commerce/features/product/domain/entities/search_product.dart';
 import 'package:taksh_e_commerce/features/search/presentation/cubit/search_cubit.dart';
 import 'package:taksh_e_commerce/features/search/presentation/cubit/search_state.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 
 /// Search page for ecommerce products
 class SearchPage extends StatefulWidget {
@@ -62,11 +63,16 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+    return TakshSoftBackground(
+      art: TakshArt.home,
+      artHeight: 210,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        elevation: 0.5,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -136,6 +142,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

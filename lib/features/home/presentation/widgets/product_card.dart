@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:taksh_e_commerce/core/di/injector.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/utils/media_url.dart';
 import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/cart/presentation/widgets/product_add_to_cart_button.dart';
 import 'package:taksh_e_commerce/features/home/data/models/product_model.dart';
@@ -84,16 +85,7 @@ class _ProductCardState extends State<ProductCard>
   void _onTapUp(TapUpDetails details) => _scaleController.reverse();
   void _onTapCancel() => _scaleController.reverse();
 
-  String? _normalizeImageUrl(String? imageUrl) {
-    final normalized = imageUrl?.trim();
-    if (normalized == null ||
-        normalized.isEmpty ||
-        normalized.toLowerCase() == 'null') {
-      return null;
-    }
-
-    return normalized;
-  }
+  String? _normalizeImageUrl(String? imageUrl) => resolveMediaUrl(imageUrl);
 
   void _initializeImageResolution() {
     final directImageUrl = _normalizeImageUrl(widget.product.imageUrl);
@@ -180,7 +172,7 @@ class _ProductCardState extends State<ProductCard>
                         _buildDeliveryChip(isCompact),
                         const SizedBox(height: 4),
                       ],
-                      _buildName(product, isCompact),
+                      Flexible(child: _buildName(product, isCompact)),
                       _buildRating(product),
                       const Spacer(),
                       _buildPriceRow(product, discount != null, isCompact),

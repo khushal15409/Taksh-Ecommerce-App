@@ -223,6 +223,10 @@ class _CategoriesPageState extends State<CategoriesPage> {
   @override
   Widget build(BuildContext context) {
     return TakshSoftBackground(
+      art: TakshArt.forCategory(
+        _categories.isEmpty ? null : _categories[_selectedIndex].name,
+      ),
+      artHeight: 170,
       child: Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -232,6 +236,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
         title: _buildHeading(),
         actions: [
           IconButton(
+            style: IconButton.styleFrom(backgroundColor: Colors.white),
             tooltip: AppLocalizations.of(context)!.searchForProducts,
             onPressed: () => context.push(AppRoutes.search),
             icon: const Icon(Icons.search_rounded),
@@ -511,9 +516,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
         return GridView.builder(
           padding: EdgeInsets.fromLTRB(
-            isNarrowWidth ? 8 : 12,
+            isNarrowWidth ? 8 : 16,
             8,
-            isNarrowWidth ? 8 : 12,
+            isNarrowWidth ? 8 : 16,
             16,
           ),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

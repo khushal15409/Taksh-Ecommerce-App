@@ -19,15 +19,63 @@ String formatRupees(double value) {
   return '₹${isWhole ? value.toStringAsFixed(0) : value.toStringAsFixed(2)}';
 }
 
-/// Page backdrop: peach-to-white gradient with soft orange and green glows in
-/// the top corners (the warm/fresh look of the Taksh design).
+/// Local top-of-screen artwork (sliced from the Taksh design mockup).
+class TakshArt {
+  TakshArt._();
+
+  static const String home = 'assets/illustrations/bg_home.jpg';
+  static const String grocery = 'assets/illustrations/bg_grocery.jpg';
+  static const String services = 'assets/illustrations/bg_services.jpg';
+  static const String electronics = 'assets/illustrations/bg_electronics.jpg';
+
+  /// Picks artwork for a product category from its name, falling back to the
+  /// generic home artwork.
+  static String forCategory(String? name) {
+    final n = (name ?? '').toLowerCase();
+    const electronicsWords = ['electronic', 'mobile', 'laptop', 'gadget', 'appliance', 'phone', 'audio', 'camera'];
+    const groceryWords = ['grocer', 'fruit', 'veg', 'dairy', 'snack', 'food', 'beverage', 'bakery', 'kitchen'];
+    if (electronicsWords.any(n.contains)) return electronics;
+    if (groceryWords.any(n.contains)) return grocery;
+    return home;
+  }
+
+  /// Horizontal focus of each artwork so the subject stays visible when the
+  /// image is cropped to the phone width.
+  static Alignment alignmentFor(String art) {
+    if (art == services) return const Alignment(0.9, -0.2);
+    if (art == grocery) return const Alignment(0.85, 0.2);
+    if (art == electronics) return const Alignment(0.85, 0.3);
+    return Alignment.topCenter;
+  }
+}
+
+/// Page backdrop: peach-to-white gradient with, when [art] is given, a local
+/// illustration across the top that fades into the page. Without [art] it
+/// shows soft orange and green glows in the top corners.
 class TakshSoftBackground extends StatelessWidget {
   final Widget child;
+  final String? art;
 
-  const TakshSoftBackground({super.key, required this.child});
+  /// Visible art height below the status bar.
+  final double artHeight;
+
+  /// Distance of the art from the top of the content area (below the status
+  /// bar). Use a positive value to place the art lower on the page; its top
+  /// edge then fades in as well.
+  final double artTop;
+
+  const TakshSoftBackground({
+    super.key,
+    required this.child,
+    this.art,
+    this.artHeight = 300,
+    this.artTop = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.paddingOf(context).top;
+
     return DecoratedBox(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -44,16 +92,56 @@ class TakshSoftBackground extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          const Positioned(
-            top: -110,
-            right: -110,
-            child: _Glow(size: 300, color: Color(0xFF7ED9A0), alpha: 0.5),
-          ),
-          const Positioned(
-            top: -110,
-            left: -90,
-            child: _Glow(size: 280, color: Color(0xFFFF7A1A), alpha: 0.2),
-          ),
+          if (art != null)
+            Positioned(
+              top: artTop > 0 ? artTop + topInset : 0,
+              left: 0,
+              right: 0,
+              height: artTop > 0 ? artHeight : artHeight + topInset,
+              child: IgnorePointer(
+                child: ShaderMask(
+                  blendMode: BlendMode.dstIn,
+                  shaderCallback: (rect) => LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: artTop > 0
+                        ? const [
+                            Colors.transparent,
+                            Colors.white,
+                            Colors.white,
+                            Colors.transparent,
+                          ]
+                        : const [
+                            Colors.white,
+                            Colors.white,
+                            Colors.transparent,
+                          ],
+                    stops: artTop > 0
+                        ? const [0.0, 0.22, 0.62, 1.0]
+                        : const [0.0, 0.62, 1.0],
+                  ).createShader(rect),
+                  child: Image.asset(
+                    art!,
+                    fit: BoxFit.cover,
+                    alignment: TakshArt.alignmentFor(art!),
+                    errorBuilder: (context, error, stack) =>
+                        const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            )
+          else ...const [
+            Positioned(
+              top: -110,
+              right: -110,
+              child: _Glow(size: 300, color: Color(0xFF7ED9A0), alpha: 0.5),
+            ),
+            Positioned(
+              top: -110,
+              left: -90,
+              child: _Glow(size: 280, color: Color(0xFFFF7A1A), alpha: 0.2),
+            ),
+          ],
           child,
         ],
       ),

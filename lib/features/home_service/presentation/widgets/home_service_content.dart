@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:taksh_e_commerce/core/di/injector.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
 import 'package:taksh_e_commerce/core/theme/app_spacing.dart';
+import 'package:taksh_e_commerce/core/utils/media_url.dart';
 import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/home_service/domain/entities/home_service.dart';
 import 'package:taksh_e_commerce/features/home_service/presentation/cubit/home_service_cubit.dart';
@@ -167,7 +167,7 @@ class _ServicesViewState extends State<_ServicesView> {
             AppSpacing.screenPaddingHorizontal,
             AppSpacing.md,
             AppSpacing.screenPaddingHorizontal,
-            AppSpacing.lg,
+            AppSpacing.xl + AppSpacing.md,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,7 +176,10 @@ class _ServicesViewState extends State<_ServicesView> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Column(
+                    // Right padding keeps the text clear of the house artwork.
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 150),
+                      child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -195,11 +198,7 @@ class _ServicesViewState extends State<_ServicesView> {
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  SvgPicture.asset(
-                    'assets/illustrations/home_garden.svg',
-                    height: 104,
+                    ),
                   ),
                 ],
               ),
@@ -453,7 +452,7 @@ class _ServiceVisual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = service.primaryImageUrl;
+    final imageUrl = resolveMediaUrl(service.primaryImageUrl);
 
     return Container(
       width: 60,

@@ -17,6 +17,7 @@ import 'package:taksh_e_commerce/features/orders/presentation/cubit/orders_cubit
 import 'package:taksh_e_commerce/features/orders/presentation/cubit/orders_state.dart';
 import 'package:taksh_e_commerce/features/product/domain/usecases/get_ecommerce_product_details.dart';
 import 'package:taksh_e_commerce/l10n/app_localizations.dart';
+import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 
 /// Orders page - displays user's orders history
 class OrdersPage extends StatefulWidget {
@@ -54,12 +55,17 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   Widget _buildOrdersContent(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return TakshSoftBackground(
+      art: TakshArt.home,
+      artHeight: 210,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         elevation: 0,
+        scrolledUnderElevation: 0,
         toolbarHeight: 100,
-        backgroundColor: AppColors.secondaryGreen,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         automaticallyImplyLeading: false,
         flexibleSpace: SafeArea(
           child: Padding(
@@ -74,7 +80,7 @@ class _OrdersPageState extends State<OrdersPage> {
                     Text(
                       AppLocalizations.of(context)!.myOrders,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.grey900,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -114,7 +120,7 @@ class _OrdersPageState extends State<OrdersPage> {
                 const Text(
                   'Track and manage your orders',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.grey700,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                   ),
@@ -125,7 +131,7 @@ class _OrdersPageState extends State<OrdersPage> {
         ),
       ),
       body: Container(
-        color: const Color(0xFFF5F5F5),
+        color: Colors.transparent,
         child: BlocConsumer<OrdersCubit, OrdersState>(
           listener: (context, state) {
             if (state is OrdersError) {
@@ -184,6 +190,7 @@ class _OrdersPageState extends State<OrdersPage> {
             return _buildEmptyOrders(context);
           },
         ),
+      ),
       ),
     );
   }

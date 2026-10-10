@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:taksh_e_commerce/core/theme/app_colors.dart';
+import 'package:taksh_e_commerce/core/utils/media_url.dart';
 import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:taksh_e_commerce/features/home/data/models/banner_model.dart';
@@ -92,7 +93,7 @@ class _BannerItem extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: CachedNetworkImage(
-              imageUrl: banner.imageUrl,
+              imageUrl: resolveMediaUrl(banner.imageUrl) ?? banner.imageUrl,
               fit: BoxFit.cover,
               width: double.infinity,
               placeholder: (context, url) => Container(

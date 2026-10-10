@@ -78,7 +78,7 @@ class CategoryProductCard extends StatelessWidget {
               const SizedBox(height: 8),
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final isCompactWidth = constraints.maxWidth < 180;
+                  final isCompactWidth = constraints.maxWidth < 130;
 
                   if (isCompactWidth) {
                     return Column(
@@ -149,13 +149,6 @@ class CategoryProductCard extends StatelessWidget {
             ),
           ),
         ),
-        if (_buildVisualBadge(discount) case final badge?)
-          Positioned(top: 10, left: 10, child: badge),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: WishlistHeartButton(productId: product.id),
-        ),
         Positioned.fill(
           child: Padding(
             padding: const EdgeInsets.all(6),
@@ -172,6 +165,13 @@ class CategoryProductCard extends StatelessWidget {
                   : _buildPlaceholderImage(context),
             ),
           ),
+        ),
+        if (_buildVisualBadge(discount) case final badge?)
+          Positioned(top: 10, left: 10, child: badge),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: WishlistHeartButton(productId: product.id),
         ),
         if (!product.inStock)
           Positioned.fill(
@@ -361,32 +361,29 @@ class CategoryProductCard extends StatelessWidget {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.end,
+      spacing: 6,
       children: [
         Text(
           '₹${_formatPrice(displayPrice)}',
           maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
             color: Theme.of(context).textTheme.bodyLarge?.color,
-            height: 1,
+            height: 1.2,
           ),
         ),
         if (discount != null && product.originalPrice != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              '₹${_formatPrice(product.originalPrice!)}',
-              style: TextStyle(
-                fontSize: 11,
-                decoration: TextDecoration.lineThrough,
-                decorationColor: Theme.of(context).textTheme.bodySmall?.color,
-                color: Theme.of(context).textTheme.bodySmall?.color,
-                fontWeight: FontWeight.w600,
-              ),
+          Text(
+            '₹${_formatPrice(product.originalPrice!)}',
+            style: TextStyle(
+              fontSize: 11,
+              decoration: TextDecoration.lineThrough,
+              decorationColor: Theme.of(context).textTheme.bodySmall?.color,
+              color: Theme.of(context).textTheme.bodySmall?.color,
+              fontWeight: FontWeight.w500,
             ),
           ),
       ],

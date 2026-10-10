@@ -47,9 +47,25 @@ class _HomeCategoryStripState extends State<HomeCategoryStrip> {
   }
 
   void _fetchCategories() {
-    context.read<ProductCubit>().fetchCategories(
+    final cubit = context.read<ProductCubit>();
+    cubit.fetchCategories(
       deliveryType: _mapApiDeliveryType(widget.deliveryType),
     );
+    // If the cubit already holds loaded categories (or emitted them
+    // synchronously), pick them up; later emissions arrive via the listener.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = cubit.state;
+      if (state is CategoryLoaded) _setCategories(state.categories);
+    });
+  }
+
+  void _setCategories(List<Category> categories) {
+    setState(() {
+      _categories = categories
+          .where((category) => category.parentId == null)
+          .toList();
+    });
   }
 
   String _mapApiDeliveryType(DeliveryType type) {
@@ -77,13 +93,7 @@ class _HomeCategoryStripState extends State<HomeCategoryStrip> {
   Widget build(BuildContext context) {
     return BlocListener<ProductCubit, ProductState>(
       listener: (context, state) {
-        if (state is CategoryLoaded) {
-          setState(() {
-            _categories = state.categories
-                .where((category) => category.parentId == null)
-                .toList();
-          });
-        }
+        if (state is CategoryLoaded) _setCategories(state.categories);
       },
       child: _categories.isEmpty
           ? const SizedBox.shrink()

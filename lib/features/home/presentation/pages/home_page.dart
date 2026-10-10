@@ -273,7 +273,7 @@ class _HomePageState extends State<_HomePageContent> {
                 : TakshArt.home,
             // Services: the house sits beside the "Home Services" heading,
             // just below the header block.
-            artTop: _selectedDeliveryType == DeliveryType.services ? 215 : 0,
+            artTop: _selectedDeliveryType == DeliveryType.services ? 150 : 0,
             artHeight:
                 _selectedDeliveryType == DeliveryType.services ? 230 : 340,
             child: Scaffold(

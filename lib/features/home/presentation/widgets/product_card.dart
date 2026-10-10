@@ -197,8 +197,8 @@ class _ProductCardState extends State<ProductCard>
           child: ClipRRect(
             borderRadius: const BorderRadius.vertical(top: radius),
             child: Container(
-              color: AppColors.grey50,
-              padding: const EdgeInsets.all(8),
+              color: Colors.white,
+              padding: const EdgeInsets.all(4),
               child: imageUrl != null
                   ? CachedNetworkImage(
                       imageUrl: imageUrl,

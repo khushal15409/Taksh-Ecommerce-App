@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:taksh_e_commerce/core/utils/coordinate_parser.dart';
 import 'package:taksh_e_commerce/core/utils/typedef.dart';
 import 'package:taksh_e_commerce/features/address/data/models/location_model.dart';
 import 'package:taksh_e_commerce/features/address/domain/entities/address.dart';
@@ -102,9 +103,11 @@ class AddressModel extends Address {
   /// Create from JSON (API response)
   factory AddressModel.fromJson(DataMap json) {
     // Construct location from scattered fields
+    // Coordinates are optional on the backend; a missing/invalid value stays
+    // 0.0, which `Location.hasValidCoordinates` treats as "unknown".
     final location = LocationModel(
-      latitude: 0.0, // API doesn't provide coordinates
-      longitude: 0.0, // API doesn't provide coordinates
+      latitude: parseCoordinate(json['latitude']) ?? 0.0,
+      longitude: parseCoordinate(json['longitude']) ?? 0.0,
       city: json['city'] as String?,
       state: json['state'] as String?,
       postalCode: json['pincode'] as String?,

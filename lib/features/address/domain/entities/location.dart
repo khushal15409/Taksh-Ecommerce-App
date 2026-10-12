@@ -57,6 +57,20 @@ class Location extends Equatable {
     );
   }
 
+  /// Whether [latitude]/[longitude] are a real, usable position.
+  ///
+  /// `0, 0` is what an address without coordinates looks like in this app
+  /// (see `AddressModel.fromJson`), so it is treated as "unknown", never as a
+  /// valid location.
+  bool get hasValidCoordinates =>
+      latitude.isFinite &&
+      longitude.isFinite &&
+      latitude >= -90 &&
+      latitude <= 90 &&
+      longitude >= -180 &&
+      longitude <= 180 &&
+      !(latitude == 0 && longitude == 0);
+
   /// Get short address (city, state)
   String get shortAddress {
     final parts = <String>[];

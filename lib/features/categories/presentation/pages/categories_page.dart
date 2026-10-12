@@ -10,6 +10,9 @@ import 'package:taksh_e_commerce/core/widgets/taksh_ui.dart';
 import 'package:taksh_e_commerce/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:taksh_e_commerce/features/auth/presentation/bloc/auth_state.dart';
 import 'package:taksh_e_commerce/features/address/domain/entities/address.dart';
+import 'package:taksh_e_commerce/features/address/presentation/bloc/address_bloc.dart';
+import 'package:taksh_e_commerce/features/address/presentation/bloc/address_event.dart';
+import 'package:taksh_e_commerce/features/address/presentation/bloc/address_state.dart';
 import 'package:taksh_e_commerce/features/address/presentation/widgets/address_selection_bottom_sheet.dart';
 import 'package:taksh_e_commerce/features/categories/presentation/widgets/category_chip_strip.dart';
 import 'package:taksh_e_commerce/features/categories/presentation/widgets/widgets.dart';
@@ -42,25 +45,42 @@ class _CategoriesPageState extends State<CategoriesPage> {
   DeliveryType _homeDeliveryType = DeliveryType.standard;
   Address? _selectedAddress;
   bool _hasLoadedInitialProducts = false;
-  static const double _defaultLatitude = 23.0695;
-  static const double _defaultLongitude = 72.6738;
+  // Identity (address + coordinates) of the last Express request, so a new
+  // selection triggers exactly one reload and an unchanged one none.
+  String? _expressProductsKey;
 
   bool get _isQuickDelivery => _homeDeliveryType == DeliveryType.quick;
 
-  double get _latitude {
-    final lat = _selectedAddress?.location.latitude;
-    return (lat != null && lat != 0.0) ? lat : _defaultLatitude;
+  /// Express-30 needs the selected address's real position; there is no
+  /// fallback to a fixed city.
+  bool get _hasUsableLocation =>
+      _selectedAddress?.location.hasValidCoordinates ?? false;
+
+  String? _expressKey() {
+    final address = _selectedAddress;
+    if (address == null || !address.location.hasValidCoordinates) return null;
+    return '${address.id}|${address.location.latitude}|'
+        '${address.location.longitude}';
   }
 
-  double get _longitude {
-    final lng = _selectedAddress?.location.longitude;
-    return (lng != null && lng != 0.0) ? lng : _defaultLongitude;
+  Address? _addressFromBloc() {
+    final state = context.read<AddressBloc>().state;
+    return state is AddressesLoaded ? state.selectedAddress : null;
+  }
+
+  /// Reloads Express products when the selected address changed since the
+  /// last request. No-op for standard delivery or before categories load.
+  void _reloadExpressIfAddressChanged() {
+    if (!_isQuickDelivery || _categories.isEmpty) return;
+    if (_expressKey() == _expressProductsKey) return;
+    _fetchProductsForCategory(_categories[_selectedIndex].id);
   }
 
   @override
   void initState() {
     super.initState();
     _homeDeliveryType = widget.initialDeliveryType ?? DeliveryType.standard;
+    _selectedAddress = _addressFromBloc();
     context.read<ProductCubit>().fetchCategories(
       deliveryType: _mapApiDeliveryType(_homeDeliveryType),
     );
@@ -68,10 +88,18 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   void _fetchProductsForCategory(int categoryId) {
     if (_isQuickDelivery) {
+      _expressProductsKey = _expressKey();
+      final location = _selectedAddress?.location;
+      if (location == null || !location.hasValidCoordinates) {
+        // No usable location: do not request products for another place.
+        // The grid shows a "choose a location" state instead.
+        setState(() {});
+        return;
+      }
       context.read<ProductCubit>().fetchExpressProducts(
         categoryId: categoryId,
-        latitude: _latitude,
-        longitude: _longitude,
+        latitude: location.latitude,
+        longitude: location.longitude,
       );
     } else {
       context.read<ProductCubit>().fetchProducts(
@@ -201,9 +229,15 @@ class _CategoriesPageState extends State<CategoriesPage> {
       setState(() {
         _selectedAddress = selectedAddress;
       });
+      // Keep the app-wide selected address (used by the home screen) in sync.
+      context.read<AddressBloc>().add(
+        SelectAddressForDeliveryEvent(selectedAddress),
+      );
     }
 
     if (_homeDeliveryType == type && _categories.isNotEmpty) {
+      // Already on this tab: only an address change needs a reload.
+      _reloadExpressIfAddressChanged();
       return;
     }
 
@@ -213,6 +247,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
       _selectedIndex = 0;
       _selectedSubcategory = null;
       _hasLoadedInitialProducts = false;
+      _expressProductsKey = null;
     });
 
     context.read<ProductCubit>().fetchCategories(
@@ -260,7 +295,16 @@ class _CategoriesPageState extends State<CategoriesPage> {
         surfaceTintColor: Colors.transparent,
         foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
       ),
-      body: BlocConsumer<ProductCubit, ProductState>(
+      body: BlocListener<AddressBloc, AddressState>(
+        // Selected address changed elsewhere (e.g. on the home screen).
+        listenWhen: (previous, current) => current is AddressesLoaded,
+        listener: (context, state) {
+          final selected = (state as AddressesLoaded).selectedAddress;
+          if (selected == null) return;
+          setState(() => _selectedAddress = selected);
+          _reloadExpressIfAddressChanged();
+        },
+        child: BlocConsumer<ProductCubit, ProductState>(
         listener: _handleStateChange,
         builder: (context, state) {
           if (state is CategoryLoading) {
@@ -291,6 +335,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             ],
           );
         },
+        ),
       ),
       ),
     );
@@ -475,7 +520,65 @@ class _CategoriesPageState extends State<CategoriesPage> {
     );
   }
 
+  Widget _buildExpressInfo({
+    required IconData icon,
+    required String title,
+    required String message,
+    required String actionLabel,
+  }) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 56, color: Colors.grey[400]),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: TextStyle(color: Colors.grey[600]),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => _handleDeliveryTypeSelection(DeliveryType.quick),
+              child: Text(actionLabel),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildProductsGrid(ProductState state) {
+    if (_isQuickDelivery && !_hasUsableLocation) {
+      return _buildExpressInfo(
+        icon: Icons.location_off_outlined,
+        title: 'Select a delivery location',
+        message:
+            'Choose a saved address with a map location to see 30-minute '
+            'delivery products near you.',
+        actionLabel: 'Choose address',
+      );
+    }
+
+    if (_isQuickDelivery && state is ExpressProductsUnavailable) {
+      return _buildExpressInfo(
+        icon: Icons.bolt_outlined,
+        title: '30-minute delivery is not available here',
+        message:
+            'No nearby store delivers in 30 minutes to this address. Try '
+            'another address or use standard delivery.',
+        actionLabel: 'Change address',
+      );
+    }
+
     if (state is ProductListLoading) {
       return const Center(child: CircularProgressIndicator());
     }

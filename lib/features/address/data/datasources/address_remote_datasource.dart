@@ -27,6 +27,16 @@ class AddressRemoteDataSourceImpl implements AddressRemoteDataSource {
 
   AddressRemoteDataSourceImpl({required this.apiClient});
 
+  /// Sends the picked map position so Express-30 can match vendors by
+  /// distance. Omitted when the address has no real coordinates, so an
+  /// address without a position never overwrites a saved one with 0,0.
+  void _addCoordinates(Map<String, dynamic> formData, AddressModel address) {
+    if (address.location.hasValidCoordinates) {
+      formData['latitude'] = address.location.latitude.toString();
+      formData['longitude'] = address.location.longitude.toString();
+    }
+  }
+
   @override
   Future<void> addAddress(AddressModel address) async {
     // Convert address to form data format matching the API
@@ -52,6 +62,7 @@ class AddressRemoteDataSourceImpl implements AddressRemoteDataSource {
     if (address.landmark != null && address.landmark!.isNotEmpty) {
       formData['landmark'] = address.landmark;
     }
+    _addCoordinates(formData, address);
 
     // API returns 201 with no body on success
     await apiClient.post(
@@ -90,6 +101,7 @@ class AddressRemoteDataSourceImpl implements AddressRemoteDataSource {
     if (address.landmark != null && address.landmark!.isNotEmpty) {
       formData['landmark'] = address.landmark;
     }
+    _addCoordinates(formData, address);
 
     await apiClient.put(
       ApiConstants.updateAddress(address.id),

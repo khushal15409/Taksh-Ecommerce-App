@@ -58,12 +58,13 @@ class _HomePageState extends State<_HomePageContent> {
   final _log = loggerWithContext({'feature': 'home', 'page': 'HomePage'});
   static const double _defaultLatitude = 23.0695;
   static const double _defaultLongitude = 72.6738;
-  static const String _defaultPincode = '382330';
   final ScrollController _scrollController = ScrollController();
 
   // Tab selection state - default to standard delivery where products are displayed
   DeliveryType _selectedDeliveryType = DeliveryType.standard;
-  bool _expressLoaded = false;
+  // Identity of the address the Express dashboard was last requested for, so
+  // a change of the selected address (or its coordinates/pincode) is detected.
+  String? _expressRequestKey;
 
   @override
   void initState() {
@@ -72,7 +73,13 @@ class _HomePageState extends State<_HomePageContent> {
     _ensureAddressesLoaded();
     _selectedDeliveryType = widget.initialDeliveryType;
     _loadDashboard();
-    _loadExpressDashboard();
+    if (_selectedDeliveryType == DeliveryType.quick) {
+      // Addresses may already be loaded; otherwise the AddressBloc listener
+      // triggers the load once they arrive.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _syncExpressDashboard();
+      });
+    }
   }
 
   void _ensureAddressesLoaded() {
@@ -155,38 +162,78 @@ class _HomePageState extends State<_HomePageContent> {
     );
   }
 
-  void _loadExpressDashboard() {
+  Address? _currentSelectedAddress() {
+    final addressState = context.read<AddressBloc>().state;
+    return addressState is AddressesLoaded ? addressState.selectedAddress : null;
+  }
+
+  /// Express-30 needs a real position and a pincode of the selected address.
+  /// There is deliberately no fallback to a fixed city.
+  bool _hasUsableLocation(Address? address) {
+    if (address == null) return false;
+    final location = address.location;
+    return location.hasValidCoordinates &&
+        (location.postalCode?.trim().isNotEmpty ?? false);
+  }
+
+  String _expressKeyFor(Address address) {
+    final location = address.location;
+    return '${address.id}|${location.latitude}|${location.longitude}|'
+        '${location.postalCode?.trim()}';
+  }
+
+  /// Loads the Express dashboard for the selected address when it differs
+  /// from the one last requested. Does nothing without a usable location.
+  void _syncExpressDashboard({bool force = false, Address? selected}) {
+    // [selected] is passed right after the user picks an address, before the
+    // AddressBloc has processed the selection event.
+    final address = selected ?? _currentSelectedAddress();
+    if (!_hasUsableLocation(address)) {
+      _expressRequestKey = null;
+      return;
+    }
+    final key = _expressKeyFor(address!);
+    if (!force && key == _expressRequestKey) return;
+    _expressRequestKey = key;
+
+    final location = address.location;
     _log.infoWithContext('Loading express dashboard', {
-      'latitude': _defaultLatitude,
-      'longitude': _defaultLongitude,
-      'pincode': _defaultPincode,
+      'address_id': address.id,
+      'latitude': location.latitude,
+      'longitude': location.longitude,
+      'pincode': location.postalCode,
     });
     context.read<ExpressDashboardBloc>().add(
-      const ExpressDashboardLoadRequested(
-        latitude: _defaultLatitude,
-        longitude: _defaultLongitude,
-        pincode: _defaultPincode,
+      ExpressDashboardLoadRequested(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        pincode: location.postalCode!.trim(),
       ),
     );
-    _expressLoaded = true;
   }
 
   void _refreshExpressDashboard() {
+    final address = _currentSelectedAddress();
+    if (!_hasUsableLocation(address)) return;
+    final location = address!.location;
+    _expressRequestKey = _expressKeyFor(address);
     _log.infoWithContext('Refreshing express dashboard', {
-      'latitude': _defaultLatitude,
-      'longitude': _defaultLongitude,
-      'pincode': _defaultPincode,
+      'address_id': address.id,
+      'latitude': location.latitude,
+      'longitude': location.longitude,
+      'pincode': location.postalCode,
     });
     context.read<ExpressDashboardBloc>().add(
-      const ExpressDashboardRefreshRequested(
-        latitude: _defaultLatitude,
-        longitude: _defaultLongitude,
-        pincode: _defaultPincode,
+      ExpressDashboardRefreshRequested(
+        latitude: location.latitude,
+        longitude: location.longitude,
+        pincode: location.postalCode!.trim(),
       ),
     );
   }
 
   Future<void> _onDeliveryTypeChanged(DeliveryType type) async {
+    Address? chosenAddress;
     if (type == DeliveryType.quick) {
       // Guest users must log in before using quick delivery.
       final authState = context.read<AuthBloc>().state;
@@ -214,6 +261,7 @@ class _HomePageState extends State<_HomePageContent> {
       }
 
       if (!mounted) return;
+      chosenAddress = selectedAddress;
       // Dispatch event to update selected address in bloc
       context.read<AddressBloc>().add(
         SelectAddressForDeliveryEvent(selectedAddress),
@@ -224,8 +272,8 @@ class _HomePageState extends State<_HomePageContent> {
       _selectedDeliveryType = type;
     });
 
-    if (type == DeliveryType.quick && !_expressLoaded) {
-      _loadExpressDashboard();
+    if (type == DeliveryType.quick) {
+      _syncExpressDashboard(selected: chosenAddress);
     }
   }
 
@@ -253,8 +301,18 @@ class _HomePageState extends State<_HomePageContent> {
           },
         ),
         BlocListener<AddressBloc, AddressState>(
+          // The selected delivery address is maintained in AddressBloc. When
+          // it (or its coordinates/pincode) changes, reload Express data.
+          listenWhen: (previous, current) =>
+              current is AddressesLoaded &&
+              (previous is! AddressesLoaded ||
+                  previous.selectedAddress?.id != current.selectedAddress?.id ||
+                  previous.selectedAddress?.location !=
+                      current.selectedAddress?.location),
           listener: (context, state) {
-            // The selected delivery address is maintained in AddressBloc.
+            if (_selectedDeliveryType == DeliveryType.quick) {
+              _syncExpressDashboard();
+            }
           },
         ),
       ],
@@ -352,6 +410,9 @@ class _HomePageState extends State<_HomePageContent> {
       case DeliveryType.quick:
         return Column(
           children: [
+            if (!_hasUsableLocation(_currentSelectedAddress()))
+              _buildLocationRequiredState()
+            else
             BlocBuilder<ExpressDashboardBloc, ExpressDashboardState>(
               builder: (context, state) {
                 if (state is ExpressDashboardLoading) {
@@ -359,7 +420,10 @@ class _HomePageState extends State<_HomePageContent> {
                 }
 
                 if (state is ExpressDashboardError) {
-                  return _buildErrorState(state.message);
+                  return _buildErrorState(
+                    state.message,
+                    onRetry: () => _syncExpressDashboard(force: true),
+                  );
                 }
 
                 if (state is ExpressDashboardLoaded ||
@@ -368,13 +432,20 @@ class _HomePageState extends State<_HomePageContent> {
                       ? state.dashboard
                       : (state as ExpressDashboardRefreshing).dashboard;
 
+                  // The backend answers 200 with no sections when no vendor
+                  // delivers to this address.
+                  if (dashboard.sections.isEmpty) {
+                    return _buildExpressUnavailableState();
+                  }
+
+                  final location = _currentSelectedAddress()!.location;
                   return ExpressDashboardContent(
                     dashboard: dashboard,
                     categoryStrip: const HomeCategoryStrip(
                       deliveryType: DeliveryType.quick,
                     ),
-                    latitude: _defaultLatitude,
-                    longitude: _defaultLongitude,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
                     onProductTap: (product) {
                       context.push(
                         AppRoutes.productDetails(product.id),
@@ -397,7 +468,63 @@ class _HomePageState extends State<_HomePageContent> {
     }
   }
 
-  Widget _buildErrorState(String message) {
+  Widget _buildLocationRequiredState() {
+    return _buildInfoState(
+      icon: Icons.location_off_outlined,
+      title: 'Select a delivery location',
+      message:
+          'Choose a saved address with a map location to see 30-minute '
+          'delivery products near you.',
+      actionLabel: 'Choose address',
+      onAction: _showAddressSelectionBottomSheet,
+    );
+  }
+
+  Widget _buildExpressUnavailableState() {
+    return _buildInfoState(
+      icon: Icons.bolt_outlined,
+      title: '30-minute delivery is not available here',
+      message:
+          'No nearby store delivers in 30 minutes to this address. Try '
+          'another address or use standard delivery.',
+      actionLabel: 'Change address',
+      onAction: _showAddressSelectionBottomSheet,
+    );
+  }
+
+  Widget _buildInfoState({
+    required IconData icon,
+    required String title,
+    required String message,
+    required String actionLabel,
+    required VoidCallback onAction,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleLarge,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: TextStyle(color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          TextButton(onPressed: onAction, child: Text(actionLabel)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message, {VoidCallback? onRetry}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -431,7 +558,7 @@ class _HomePageState extends State<_HomePageContent> {
                 ],
               ),
               child: ElevatedButton.icon(
-                onPressed: _loadDashboard,
+                onPressed: onRetry ?? _loadDashboard,
                 icon: const Icon(Icons.refresh, color: Colors.white),
                 label: const Text(
                   'Try Again',

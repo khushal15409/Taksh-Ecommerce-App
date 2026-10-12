@@ -70,3 +70,10 @@ class ProductError extends ProductState {
   @override
   List<Object?> get props => [message];
 }
+
+/// Express-30 is not available at the requested location (no eligible vendor).
+/// Distinct from [ProductError] so the UI can show an "unavailable here"
+/// empty state instead of a generic failure.
+class ExpressProductsUnavailable extends ProductState {
+  const ExpressProductsUnavailable();
+}

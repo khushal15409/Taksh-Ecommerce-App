@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:taksh_e_commerce/core/error/failures.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/paginated_products.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/product.dart';
 import 'package:taksh_e_commerce/features/product/domain/entities/product_variant.dart';
@@ -30,6 +31,7 @@ class ProductCubit extends Cubit<ProductState> {
     String deliveryType = 'standard_delivery',
   }) async {
     if (isClosed) return;
+    _expressRequestId++; // drop any in-flight Express response
     emit(const CategoryLoading());
 
     final result = await getCategories(
@@ -55,6 +57,7 @@ class ProductCubit extends Cubit<ProductState> {
       '📦 ProductCubit: Fetching products for category: $categoryId, page: $page, limit: $limit, search: $search',
     );
     if (isClosed) return;
+    _expressRequestId++; // drop any in-flight Express response
     emit(const ProductListLoading());
 
     final result = await getProducts(
@@ -82,6 +85,8 @@ class ProductCubit extends Cubit<ProductState> {
     );
   }
 
+  int _expressRequestId = 0;
+
   /// Fetch express products for a category (uses /express-30/products API)
   Future<void> fetchExpressProducts({
     required int categoryId,
@@ -90,6 +95,7 @@ class ProductCubit extends Cubit<ProductState> {
     int page = 1,
   }) async {
     if (isClosed) return;
+    final requestId = ++_expressRequestId;
     emit(const ProductListLoading());
 
     final result = await getExpressProducts(
@@ -101,10 +107,17 @@ class ProductCubit extends Cubit<ProductState> {
       ),
     );
 
-    if (isClosed) return;
+    // A newer request (another address/category) was started meanwhile.
+    if (isClosed || requestId != _expressRequestId) return;
 
     result.fold(
-      (failure) => emit(ProductError(failure.message)),
+      (failure) {
+        if (failure is NotFoundFailure) {
+          emit(const ExpressProductsUnavailable());
+        } else {
+          emit(ProductError(failure.message));
+        }
+      },
       (response) {
         final paginatedProducts = PaginatedProducts(
           currentPage: response.currentPage,

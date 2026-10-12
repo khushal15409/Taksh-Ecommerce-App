@@ -17,6 +17,11 @@ class ExpressDashboardBloc
     on<ExpressDashboardRefreshRequested>(_onRefreshRequested);
   }
 
+  /// Id of the latest request. Responses of older requests (e.g. for the
+  /// previously selected address) are dropped so they never overwrite the
+  /// dashboard of the current address.
+  int _requestSeq = 0;
+
   final _log = loggerWithContext({
     'feature': 'home',
     'layer': 'bloc',
@@ -36,6 +41,7 @@ class ExpressDashboardBloc
       },
     );
 
+    final seq = ++_requestSeq;
     emit(const ExpressDashboardLoading());
 
     final params = ExpressDashboardParams(
@@ -45,6 +51,7 @@ class ExpressDashboardBloc
     );
 
     final result = await _getExpressDashboardUseCase(params);
+    if (seq != _requestSeq) return;
 
     result.fold(
       (failure) {
@@ -77,6 +84,7 @@ class ExpressDashboardBloc
       },
     );
 
+    final seq = ++_requestSeq;
     if (state is ExpressDashboardLoaded) {
       emit(ExpressDashboardRefreshing(
           (state as ExpressDashboardLoaded).dashboard));
@@ -89,6 +97,7 @@ class ExpressDashboardBloc
     );
 
     final result = await _getExpressDashboardUseCase(params);
+    if (seq != _requestSeq) return;
 
     result.fold(
       (failure) {

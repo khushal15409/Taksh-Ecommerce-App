@@ -122,6 +122,10 @@ class ProductRepositoryImpl implements ProductRepository {
         limit: limit,
       );
       return Right(response);
+    } on NotFoundException catch (e) {
+      // 404 from /express-30/products means no vendor delivers to this
+      // location ("express.not_available"), not a server fault.
+      return Left(NotFoundFailure(e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } on NetworkException catch (e) {

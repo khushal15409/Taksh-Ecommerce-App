@@ -1,8 +1,11 @@
 name: Build Android APK
 
-# Builds a test APK and uploads it as a workflow artifact.
+# Builds a test APK, uploads it as a workflow artifact AND publishes it as a
+# GitHub Release, so it can be downloaded directly (no artifact zip needed):
+#   https://github.com/<owner>/<repo>/releases/latest/download/taksh-app.apk
 # NOTE: APKs are signed with the debug key (see android/app/build.gradle.kts).
 # They are for testing only and are NOT suitable for a Play Store release.
+# Optional repo secret: RAZORPAY_KEY_ID (public key only; .env is bundled in the APK).
 
 on:
   workflow_dispatch:
@@ -27,7 +30,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: build-android-apk-${{ github.ref }}
@@ -62,6 +65,13 @@ jobs:
           echo "target=$TARGET" >> "$GITHUB_OUTPUT"
           echo "apk=build/app/outputs/flutter-apk/app-$MODE.apk" >> "$GITHUB_OUTPUT"
           echo "name=taksh-$ENTRY-$MODE-apk-${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Create .env
+        env:
+          RAZORPAY_KEY_ID: ${{ secrets.RAZORPAY_KEY_ID }}
+        run: |
+          # .env is gitignored but bundled as an asset; never put secret keys here.
+          echo "RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-your_razorpay_key_id_here}" > .env
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -117,3 +127,19 @@ jobs:
           path: ${{ steps.cfg.outputs.apk }}
           if-no-files-found: error
           retention-days: 7
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${ENTRY}-${MODE}-${GITHUB_RUN_NUMBER}"
+          VERSION=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          NAMED="taksh-${ENTRY}-${MODE}-v${VERSION}-${GITHUB_RUN_NUMBER}.apk"
+          # taksh-app.apk keeps a fixed name for the /releases/latest/download/ URL.
+          cp "${{ steps.cfg.outputs.apk }}" taksh-app.apk
+          cp "${{ steps.cfg.outputs.apk }}" "$NAMED"
+          gh release create "$TAG" taksh-app.apk "$NAMED" \
+            --target "$GITHUB_SHA" \
+            --title "Taksh ${ENTRY} ${MODE} #${GITHUB_RUN_NUMBER} (v${VERSION})" \
+            --notes "Entry: ${ENTRY} | Mode: ${MODE} | Commit: ${GITHUB_SHA}" \
+            --latest
